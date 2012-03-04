@@ -1,0 +1,1222 @@
+#+TITLE: Emacs Configuration
+#+AUTHOR: Seth Falcon
+#+EMAIL: seth@userprimary.net
+#+OPTIONS: toc:3 num:nil ^:nil
+
+# table of contents down to level 2
+# no section numbers
+# don't use TeX syntax for sub and superscripts.
+# See http://orgmode.org/manual/Export-options.html
+
+* Basic Editor Config
+  #+begin_src emacs-lisp
+  (dolist (mode '(menu-bar-mode tool-bar-mode scroll-bar-mode))
+    (when (fboundp mode) (funcall mode -1)))
+
+  ;; Emacs users obviously have little need for Command and Option keys,
+  ;; but they do need Meta and Super
+  (when (eq system-type 'darwin)
+    (setq mac-command-modifier 'meta)
+    (setq mac-option-modifier 'meta))
+
+  (defun add-hook-to-modes (modes hook)
+    (dolist (mode modes)
+      (add-hook (intern (concat (symbol-name mode) "-mode-hook")) hook)))
+
+  ;; Death to the tabs!
+  (setq-default indent-tabs-mode nil)
+
+  ;; delete the selection with a keypress
+                                          ;(delete-selection-mode t)
+
+  ;; revert buffers automatically when underlying files are changed externally
+  (global-auto-revert-mode t)
+
+  ;; hippie expand is dabbrev expand on steroids
+  (setq hippie-expand-try-functions-list '(try-expand-dabbrev
+                                           try-expand-dabbrev-all-buffers
+                                           try-expand-dabbrev-from-kill
+                                           try-complete-file-name-partially
+                                           try-complete-file-name
+                                           try-expand-all-abbrevs
+                                           try-expand-list
+                                           try-expand-line
+                                           try-complete-lisp-symbol-partially
+                                           try-complete-lisp-symbol))
+
+  ;; ;; smart indenting and pairing for all
+  ;; (electric-pair-mode t)
+  ;; (electric-indent-mode t)
+  ;; (electric-layout-mode t)
+
+  ;; meaningful names for buffers with the same name
+  (require 'uniquify)
+  (setq uniquify-buffer-name-style 'forward)
+  (setq uniquify-separator "/")
+  (setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
+  (setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
+
+  ;; saveplace remembers your location in a file when saving files
+  (setq save-place-file (concat user-emacs-directory "saveplace"))
+  ;; activate it for all buffers
+  (setq-default save-place t)
+  (require 'saveplace)
+
+  ;; savehist keeps track of some history
+  (setq savehist-additional-variables
+        ;; search entries
+        '(search ring regexp-search-ring)
+        ;; save every minute
+        savehist-autosave-interval 60
+        ;; keep the home clean
+        savehist-file (concat user-emacs-directory "savehist"))
+  (savehist-mode t)
+
+  ;; save recent files
+  (setq recentf-save-file (concat user-emacs-directory "recentf")
+        recentf-max-saved-items 200
+        recentf-max-menu-items 15)
+  (recentf-mode t)
+
+  ;; time-stamps
+  ;; when there's "Time-stamp: <>" in the first 10 lines of the file
+  (setq time-stamp-active t
+        ;; check first 10 buffer lines for Time-stamp: <>
+        time-stamp-line-limit 10
+        time-stamp-format "%04y-%02m-%02d %02H:%02M:%02S (%u)") ; date format
+  (add-hook 'write-file-hooks 'time-stamp) ; update when saving
+
+  ;; ;; use shift + arrow keys to switch between visible buffers
+  ;; (require 'windmove)
+  ;; (windmove-default-keybindings 'super)
+
+  ;; show-paren-mode: subtle highlighting of matching parens
+  (show-paren-mode t)
+  (setq show-paren-style 'parenthesis)
+
+  ;; highlight the current line
+  (global-hl-line-mode +1)
+
+  ;; tramp, for sudo access
+  (require 'tramp)
+  ;; keep in mind known issues with zsh - see emacs wiki
+  (setq tramp-default-method "ssh")
+
+  ;; auto-completion in minibuffer
+  (icomplete-mode +1)
+
+  (set-default 'imenu-auto-rescan t)
+
+  ;; flyspell-mode does spell-checking on the fly as you type
+  (setq ispell-program-name "aspell" ; use aspell instead of ispell
+        ispell-extra-args '("--sug-mode=ultra"))
+  (autoload 'flyspell-mode "flyspell" "On-the-fly spelling checker." t)
+
+  ;; until I can figure out how to make flyspell not be SLOW...
+  ;; (defun prelude-turn-on-flyspell ()
+  ;;   "Force flyspell-mode on using a positive argument.  For use in hooks."
+  ;;   (interactive)
+  ;;   (flyspell-mode +1))
+
+  ;; (add-hook 'message-mode-hook 'prelude-turn-on-flyspell)
+  ;; (add-hook 'text-mode-hook 'prelude-turn-on-flyspell)
+
+  ;; enable narrow to region
+  (put 'narrow-to-region 'disabled nil)
+
+  ;; bookmarks
+  (setq bookmark-default-file (concat user-emacs-directory "bookmarks")
+        bookmark-save-flag 1)
+
+  ;; enabled auto-fill mode in text-mode and all related modes
+  (add-hook 'text-mode-hook 'turn-on-auto-fill)
+
+  ;; ;; load yasnippet
+  ;; (require 'yasnippet)
+  ;; (yas/initialize)
+
+  ;; dired - reuse current buffer by pressing 'a'
+  (put 'dired-find-alternate-file 'disabled nil)
+
+
+  ;; store all autosave files in the tmp dir
+  (setq auto-save-file-name-transforms
+        `((".*" ,temporary-file-directory t)))
+
+  ;; backups in backup dir
+  (setq backup-by-copying t
+        backup-directory-alist '(("." . "~/.emacs.d/backup"))
+        delete-old-versions t
+        kept-new-versions 24
+        kept-old-versions 12
+        version-control t)
+
+  ;; emacsclient/server
+
+  (defun halt ()
+    (interactive)
+    (save-some-buffers)
+    (kill-emacs))
+
+  ;; shortcuts
+
+  ;; ido-mode
+  (require 'ido)
+  (ido-mode t)
+  (setq ido-auto-merge-work-directories-length nil
+        ido-create-new-buffer 'always
+        ido-enable-flex-matching t
+        ido-enable-prefix nil
+        ido-handle-duplicate-virtual-buffers 2
+        ido-max-prospects 10
+        ido-use-filename-at-point 'nil
+        ido-use-virtual-buffers t)
+
+  (defalias 'yes-or-no-p 'y-or-n-p)
+
+  (defun after-smex ()
+    (global-set-key (kbd "M-x") 'smex)
+    (global-set-key (kbd "M-X") 'execute-extended-command))
+
+  (defun after-magit ()
+    (add-hook 'magit-mode-hook 'turn-on-magit-topgit)
+    (global-set-key (kbd "C-x g") 'magit-status))
+
+  ;; coding
+
+  (setq lisp-modes '(clojure
+                     emacs-lisp
+                     lfe
+                     scheme)
+        code-modes (apply #'append
+                          (list lisp-modes
+                                '(erlang
+                                  haskell
+                                  julia
+                                  perl
+                                  python
+                                  ruby
+                                  sh
+                                  vhdl))))
+
+  ;; lisp modes
+
+  (defun my-lisp-mode-hook ()
+    (font-lock-add-keywords
+     nil `(("(\\(lambda\\>\\)"
+            (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                      ,(make-char 'greek-iso8859-7 107))
+                      nil))))))
+
+  (add-hook-to-modes lisp-modes 'my-lisp-mode-hook)
+
+  ;; paredit - cruise-control for lisp editing
+
+  (defun my-paredit-mode-hook ()
+    (show-paren-mode t)
+    (paredit-mode t)
+    (local-set-key (kbd "C-c (") 'paredit-backward-slurp-sexp)
+    (local-set-key (kbd "C-c )") 'paredit-forward-slurp-sexp)
+    (local-set-key (kbd "C-c 9") 'paredit-backward-barf-sexp)
+    (local-set-key (kbd "C-c 0") 'paredit-forward-barf-sexp))
+
+  (defun after-paredit ()
+    (add-hook-to-modes lisp-modes 'my-paredit-mode-hook))
+
+  ;; code modes
+
+  (setq indent-tabs-mode nil)
+
+  (defun buffer-cleanup ()
+    "Clean up the buffer"
+    (interactive)
+    (delete-blank-lines)
+    (delete-trailing-whitespace)
+    (untabify (point-min) (point-max))
+    (indent-region (point-min) (point-max)))
+
+  (global-set-key (kbd "C-c n") 'buffer-cleanup)
+  (global-set-key (kbd "C-c r") 'align-regexp)
+
+  (defun my-code-mode-hook ()
+    (local-set-key (kbd "C-m") 'newline-and-indent))
+
+  (add-hook-to-modes code-modes 'my-code-mode-hook)
+
+  ;; whitespace - because it's evil
+
+  (defun my-whitespace-mode-hook ()
+    (setq whitespace-action '(auto-cleanup)
+          whitespace-style  '(face tabs trailing lines-tail empty))
+    (whitespace-mode))
+
+  (add-hook-to-modes code-modes 'my-whitespace-mode-hook)
+
+  #+end_src
+* UI
+  #+begin_src emacs-lisp
+;; the blinking cursor is nothing, but an annoyance
+(blink-cursor-mode -1)
+
+;; disable startup screen
+(setq inhibit-startup-screen t)
+
+;; nice scrolling
+(setq scroll-margin 0
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
+
+;; mode line settings
+(line-number-mode t)
+(column-number-mode t)
+(size-indication-mode t)
+(load-theme 'wheatgrass t)
+
+  #+end_src
+* Packages and el-git
+
+  List the ELPA repositories to scan.
+  #+begin_src emacs-lisp
+  (setq package-archives
+        '(("marmalade" . "http://marmalade-repo.org/packages/")
+          ("original"  . "http://tromey.com/elpa/")
+          ("gnu"       . "http://elpa.gnu.org/packages/")
+          ))
+  #+end_src
+
+** el-get package after hooks
+*** ess
+    #+begin_src emacs-lisp
+  (defun after-ess ()
+    (setq ess-S-assign-key (kbd "C-="))
+    (ess-toggle-S-assign-key t)             ; enable above key definition
+    ;; leave my underscore key alone!
+    (ess-toggle-underscore nil)
+    (setq ess-r-versions '("R-"))
+    (setq ess-use-inferior-program-name-in-buffer-name t)
+    (add-to-list 'auto-mode-alist '("\\.Rd\\'" . Rd-mode))
+    (setq ess-eval-visibly-p nil)
+    (setq inferior-R-args "--no-save --no-restore -q")
+
+    ;; ESS
+    (add-hook 'ess-mode-hook
+              (lambda ()
+                (ess-set-style 'C++ 'quiet)
+                ;; Because
+                ;;                                 DEF GNU BSD K&R C++
+                ;; ess-indent-level                  2   2   8   5   4
+                ;; ess-continued-statement-offset    2   2   8   5   4
+                ;; ess-brace-offset                  0   0  -8  -5  -4
+                ;; ess-arg-function-offset           2   4   0   0   0
+                ;; ess-expression-offset             4   2   8   5   4
+                ;; ess-else-offset                   0   0   0   0   0
+                ;; ess-close-brace-offset            0   0   0   0   0
+                (add-hook 'local-write-file-hooks
+                          (lambda ()
+                            (ess-nuke-trailing-whitespace)))
+                (setq fill-column 72)))
+    (setq ess-nuke-trailing-whitespace-p 'ask))
+    #+end_src
+*** confluence
+    #+begin_src emacs-lisp
+  (defun after-confluence ()
+    (setq confluence-url "https://wiki.corp.opscode.com/rpc/xmlrpc"
+          confluence-default-space-alist (list (cons confluence-url "CORP")))
+    (global-set-key "\C-xwf" 'confluence-get-page)
+    ;; confluence editing support (with longlines mode)
+    (autoload 'confluence-get-page "confluence" nil t)
+    (eval-after-load "confluence"
+      '(progn
+         (require 'longlines)
+         (progn
+           (add-hook 'confluence-mode-hook 'longlines-mode)
+           (add-hook 'confluence-before-save-hook 'longlines-before-revert-hook)
+           (add-hook 'confluence-before-revert-hook 'longlines-before-revert-hook)
+           (add-hook 'confluence-mode-hook
+                     '(lambda ()
+                        (local-set-key "\C-j"
+                                       'confluence-newline-and-indent))))))
+    ;; LongLines mode: http://www.emacswiki.org/emacs-en/LongLines
+    (autoload 'longlines-mode "longlines" "LongLines Mode." t)
+
+    (eval-after-load "longlines"
+      '(progn
+         (defvar longlines-mode-was-active nil)
+         (make-variable-buffer-local 'longlines-mode-was-active)
+
+         (defun longlines-suspend ()
+           (if longlines-mode
+               (progn
+                 (setq longlines-mode-was-active t)
+                 (longlines-mode 0))))
+
+         (defun longlines-restore ()
+           (if longlines-mode-was-active
+               (progn
+                 (setq longlines-mode-was-active nil)
+                 (longlines-mode 1))))
+
+         ;; longlines doesn't play well with ediff, so suspend it during diffs
+         (defadvice ediff-make-temp-file (before make-temp-file-suspend-ll
+                                                 activate compile preactivate)
+           "Suspend longlines when running ediff."
+           (with-current-buffer (ad-get-arg 0)
+             (longlines-suspend)))
+
+
+         (add-hook 'ediff-cleanup-hook
+                   '(lambda ()
+                      (dolist (tmp-buf (list ediff-buffer-A
+                                             ediff-buffer-B
+                                             ediff-buffer-C))
+                        (if (buffer-live-p tmp-buf)
+                            (with-current-buffer tmp-buf
+                              (longlines-restore)))))))))
+    #+end_src
+*** erlang
+    #+begin_src emacs-lisp
+(defun my-fic-ext-mode-hook ()
+  (fic-ext-mode t))
+
+(defun after-fic-ext-mode ()
+  (add-hook-to-modes code-modes 'my-fic-ext-mode-hook))
+
+;; flymake - builds your codes when you save
+
+(defun my-flymake-mode-hook ()
+  (local-set-key (kbd "C-c e") 'flymake-goto-next-error))
+
+(add-hook 'flymake-mode-hook 'my-flymake-mode-hook)
+(add-hook 'find-file-hook 'flymake-find-file-hook)
+
+;; erlang
+
+(defun my-erlang-mode-hook ()
+  (require 'erlang-flymake)
+  (erlang-flymake-only-on-save))
+
+(defun after-erlang ()
+  (require 'erlang-start)
+  (add-hook 'erlang-mode-hook 'my-erlang-mode-hook))
+
+(defun after-lfe ()
+  (require 'lfe-start))
+    #+end_src
+*** smex
+    #+begin_src emacs-lisp
+(defun after-smex ()
+  (global-set-key (kbd "M-x") 'smex)
+  (global-set-key (kbd "M-X") 'execute-extended-command))
+    #+end_src
+*** org-mode
+    #+begin_src emacs-lisp
+  (defun after-org-mode ()
+    (require 'org-install)
+    (require 'org-velocity)
+    (global-set-key (kbd "C-c 0") 'org-velocity-read)
+    (define-key global-map "\C-c1" 'org-capture)
+    (define-key global-map "\C-cl" 'org-store-link)
+    (define-key global-map "\C-ca" 'org-agenda)
+    (global-set-key "\C-cb" 'org-iswitchb)
+
+    (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
+    (setq
+     org-directory "~/Notebook/org"
+     org-mobile-inbox-for-pull "~/Notebook/org/from-mobile.org"
+     org-mobile-directory "~/Dropbox/MobileOrg"
+     org-agenda-files (quote ("~/Notebook/org/seth.org"))
+     org-enforce-todo-dependencies t
+     org-velocity-bucket "~/Notebook/org/solutions.org"
+     org-default-notes-file (concat org-directory "/notes.org")
+     org-log-done t)
+
+    ;; capture setup
+    (setq org-capture-templates
+          '(("t" "Todo" entry (file+headline (concat org-directory "/seth.org") "Next Action")
+             "* TODO %?\n  %i\n  %a")
+            ("s" "Solution" entry (file+headline (concat org-directory "/solutions.org"))
+             "* %?\nEntered on %U\n  %i\n  %a")
+            ("j" "Journal" entry (file+datetree (concat org-directory "/journal.org"))
+             "* %?\nEntered on %U\n  %i\n  %a")))
+
+    ;; where to refile
+    (setq org-refile-targets
+          '((nil . (:level . 1))
+            ("solutions.org" . (:level . 1))
+            ("seth.org" . (:level . 1))
+            ("seth-sometime.org" . (:level . 1))
+            ("seth-ref.org" . (:level . 1))))
+
+    (setq org-refile-use-outline-path 'file)
+
+    ;; ;; http://orgmode.org/worg/org-faq.php#YASnippet
+    ;; (defun yas/org-very-safe-expand ()
+    ;;   (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
+
+    ;; (add-hook 'org-mode-hook
+    ;;           (lambda ()
+    ;;             ;; yasnippet (using the new org-cycle hooks)
+    ;;             (make-variable-buffer-local 'yas/trigger-key)
+    ;;             (setq yas/trigger-key [tab])
+    ;;             (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
+    ;;             (define-key yas/keymap [tab] 'yas/next-field)))
+
+    ;; this seems to work as well and is more general. It was slow on
+    ;; first load, then pretty snappy. Worked for mail and chrome
+    (when (eq system-type 'darwin)
+      (require 'org-mac-link-grabber)
+      (add-hook 'org-mode-hook
+                (lambda ()
+                  (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link))))
+
+    ;; org-babel setup
+    ;; (require 'org-babel-init)
+    ;; (require 'org-babel-R)
+    ;; (require 'org-babel-ruby)
+    ;; (org-babel-load-library-of-babel)
+    )
+
+    #+end_src
+
+** el-get install and package setup
+   #+begin_src emacs-lisp
+      (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+
+      (unless (require 'el-get nil t)
+        (with-current-buffer
+            (url-retrieve-synchronously
+             "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+          (let (el-get-master-branch)
+            (end-of-buffer)
+            (eval-print-last-sexp))))
+      ;;
+      ;; el-get Sources
+      ;;
+      (setq
+       el-get-git-shallow-clone t
+       el-get-github-default-url-type 'git
+       el-get-sources
+       '(
+         (:name confluence
+                :type http-tar
+                :url "http://confluence-el.googlecode.com/files/confluence-el-1.5.tar.gz"
+                :localname "confluence-el-1.5.tar.gz"
+                :options ("xzf")
+                :after (progn (after-confluence))
+                :features confluence)
+         (:name magit
+                :type git
+                :url "https://github.com/magit/magit.git"
+                :features magit
+                :after (progn (after-magit)))
+         (:name ess
+                :after (progn (after-ess)))
+         (:name org-mode
+                :type git
+                :url "git://repo.or.cz/org-mode.git"
+                :load-path ("lisp" "contrib/lisp")
+                :after (progn (after-org-mode)))
+         (:name emacs_chrome
+                :type git
+                :url "https://github.com/stsquad/emacs_chrome"
+                :load-path ("servers")
+                :features edit-server
+                :after (progn (edit-server-start)))
+         (:name erlang
+                :type github
+                :pkgname "erlang/otp"
+                :load-path ("lib/tools/emacs")
+                :shallow t
+                :after (progn (after-erlang)))
+         (:name fic-ext-mode :after (progn (after-fic-ext-mode)))
+         (:name smex :after (progn (after-smex)))
+         (:name magithub)
+         (:name dirtree
+                :description "Directory tree views in Emacs"
+                :type git
+                :url "https://github.com/zkim/emacs-dirtree.git"
+                :depends (tree-mode windata)
+                :features dirtree)
+         (:name fill-column-indicator
+                :type git
+                :url "git://github.com/alpaker/Fill-Column-Indicator.git"
+                :features fill-column-indicator)
+         (:name linum+
+                :type emacswiki
+                :features linum+)
+         (:name rhtml
+                :type git
+                :url "https://github.com/crazycode/rhtml.git"
+                :features rhtml-mode)
+         (:name ruby-mode
+                :type svn
+                :url "http://svn.ruby-lang.org/repos/ruby/trunk/misc/")
+         (:name tree-mode
+                :type emacswiki
+                :features tree-mode)
+         (:name windata
+                :type emacswiki
+                :features windata)))
+      ;;
+      ;; My Packages
+      ;;
+      (setq my-packages
+            (append
+             '(full-ack
+               gist
+               haml-mode
+               markdown-mode
+               paredit
+               sass-mode
+               scss-mode
+               yaml-mode
+               zenburn-theme)
+             (mapcar 'el-get-source-name el-get-sources)))
+
+      (el-get 'sync my-packages)
+      (el-get 'wait)
+
+   #+end_src
+** My misc config
+   :PROPERTIES:
+   :tangle:   no
+   :END:
+   #+begin_src emacs-list
+;; wrangler Erlang code refactor tool
+(add-to-list 'load-path "/usr/local/share/wrangler/elisp")
+(require 'wrangler)
+
+(defvar activity-log-file-prefix "~/ACTILOG"
+  "prefix for file containing activity log")
+
+(defun actilog (log)
+       (interactive "sLog: ")
+       (save-excursion
+        (set-buffer (find-file-noselect
+                     (format "%s-%s" activity-log-file-prefix
+                             (format-time-string "%m-%d"))))
+        (goto-char (point-max))
+        (insert (format "%s %s\n" (format-time-string "[%H:%M]") log))
+        (save-buffer)))
+
+(global-set-key [f12] 'actilog)
+
+;;; yasnippet config
+;;(require 'yasnippet-bundle)
+;; (yas/initialize)
+;;(setq yas/root-directory "~/.emacs.d/personal/snippets")
+;;(yas/load-directory yas/root-directory)
+
+(defun yas/advise-indent-function (function-symbol)
+  (eval `(defadvice ,function-symbol (around yas/try-expand-first activate)
+           ,(format
+             "Try to expand a snippet before point, then call `%s' as usual"
+             function-symbol)
+           (let ((yas/fallback-behavior nil))
+             (unless (and (interactive-p)
+                          (yas/expand))
+               ad-do-it)))))
+
+(yas/advise-indent-function 'noweb-indent-line)
+
+;; cucumber mode
+;(require 'feature-mode)
+;(add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
+
+;; textmate and peep open
+;(require 'textmate)
+;(require 'peepopen)
+;(setq ns-pop-up-frames nil)
+;(textmate-mode)
+;; (textmate-mode)
+;; (textmate-mode)
+;(require 'rspec-mode)
+
+;; lua!
+;(setq auto-mode-alist (cons '("\\.lua$" . lua-mode) auto-mode-alist))
+;(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+
+;; http-twiddle
+;(require 'http-twiddle)
+
+(defun chomp (str)
+      "Chomp leading and tailing whitespace from STR."
+      (let ((s (if (symbolp str) (symbol-name str) str)))
+        (replace-regexp-in-string
+         "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
+
+   #+end_src
+** Prelude defuns and such
+   #+begin_src emacs-lisp
+  ;;; prelude-core.el --- Emacs Prelude: core Prelude defuns.
+  ;;
+  ;; Copyright (c) 2011 Bozhidar Batsov
+  ;;
+  ;; Author: Bozhidar Batsov <bozhidar.batsov@gmail.com>
+  ;; URL: http://www.emacswiki.org/cgi-bin/wiki/Prelude
+  ;; Version: 1.0.0
+  ;; Keywords: convenience
+
+  ;; This file is not part of GNU Emacs.
+
+  ;;; Commentary:
+
+  ;; Here are the definitions of most of the functions added by Prelude.
+
+  ;;; License:
+
+  ;; This program is free software; you can redistribute it and/or
+  ;; modify it under the terms of the GNU General Public License
+  ;; as published by the Free Software Foundation; either version 3
+  ;; of the License, or (at your option) any later version.
+  ;;
+  ;; This program is distributed in the hope that it will be useful,
+  ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ;; GNU General Public License for more details.
+  ;;
+  ;; You should have received a copy of the GNU General Public License
+  ;; along with GNU Emacs; see the file COPYING.  If not, write to the
+  ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  ;; Boston, MA 02110-1301, USA.
+
+  ;;; Code:
+
+  (require 'cl)
+  (require 'thingatpt)
+
+  (defun prelude-add-subfolders-to-load-path (parent-dir)
+    "Adds all first level `parent-dir' subdirs to the
+  Emacs load path."
+    (dolist (f (directory-files parent-dir))
+      (let ((name (concat parent-dir f)))
+        (when (and (file-directory-p name)
+                   (not (equal f ".."))
+                   (not (equal f ".")))
+          (add-to-list 'load-path name)))))
+
+  ;; add the first level subfolders of vendor automatically
+  ;; (prelude-add-subfolders-to-load-path prelude-vendor-dir)
+
+  (defun prelude-open-with ()
+    "Simple function that allows us to open the underlying
+  file of a buffer in an external program."
+    (interactive)
+    (when buffer-file-name
+      (shell-command (concat
+                      (if (eq system-type 'darwin)
+                          "open"
+                        (read-shell-command "Open current file with: "))
+                      " "
+                      buffer-file-name))))
+
+  (defun prelude-buffer-mode (buffer-or-name)
+    (with-current-buffer buffer-or-name major-mode))
+
+  (defun prelude-visit-term-buffer ()
+    (interactive)
+    (if (not (get-buffer "*ansi-term*"))
+        (ansi-term "/bin/bash")
+      (switch-to-buffer "*ansi-term*")))
+
+  (defun prelude-google ()
+    "Googles a query or region if any."
+    (interactive)
+    (browse-url
+     (concat
+      "http://www.google.com/search?ie=utf-8&oe=utf-8&q="
+      (if mark-active
+          (buffer-substring (region-beginning) (region-end))
+        (read-string "Google: ")))))
+
+  (defun prelude-indent-rigidly-and-copy-to-clipboard (begin end indent)
+    "Copy the selected code region to the clipboard, indented according
+  to Markdown blockquote rules."
+    (let ((buffer (current-buffer)))
+      (with-temp-buffer
+        (insert-buffer-substring-no-properties buffer begin end)
+        (indent-rigidly (point-min) (point-max) indent)
+        (clipboard-kill-ring-save (point-min) (point-max)))))
+
+  (defun prelude-indent-blockquote-and-copy-to-clipboard (begin end)
+    "Copy the selected code region to the clipboard, indented according
+  to markdown blockquote rules (useful to copy snippets to StackOverflow, Assembla, Github."
+    (interactive "r")
+    (prelude-indent-rigidly-and-copy-to-clipboard begin end 4))
+
+  (defun prelude-indent-nested-blockquote-and-copy-to-clipboard (begin end)
+    "Copy the selected code region to the clipboard, indented according
+  to markdown blockquote rules. Useful to add snippets under bullet points."
+    (interactive "r")
+    (prelude-indent-rigidly-and-copy-to-clipboard begin end 6))
+
+  (defun prelude-insert-empty-line ()
+    "Insert an empty line after the current line and positon
+  the curson at its beginning, according to the current mode."
+    (interactive)
+    (move-end-of-line nil)
+    (open-line 1)
+    (next-line 1)
+    (indent-according-to-mode))
+
+  ;; mimic popular IDEs binding, note that it doesn't work in a terminal session
+  (global-set-key [(shift return)] 'prelude-insert-empty-line)
+
+  (defun prelude-move-line-up ()
+    "Move up the current line."
+    (interactive)
+    (transpose-lines 1)
+    (previous-line 2))
+
+  (global-set-key [(control shift up)] 'prelude-move-line-up)
+
+  (defun prelude-move-line-down ()
+    "Move down the current line."
+    (interactive)
+    (next-line 1)
+    (transpose-lines 1)
+    (previous-line 1))
+
+  (global-set-key [(control shift down)] 'prelude-move-line-down)
+
+  ;; add the ability to copy and cut the current line, without marking it
+  (defadvice kill-ring-save (before slick-copy activate compile)
+    "When called interactively with no active region, copy a single line instead."
+    (interactive
+     (if mark-active (list (region-beginning) (region-end))
+       (message "Copied line")
+       (list (line-beginning-position)
+             (line-beginning-position 2)))))
+
+  (defadvice kill-region (before slick-cut activate compile)
+    "When called interactively with no active region, kill a single line instead."
+    (interactive
+     (if mark-active (list (region-beginning) (region-end))
+       (list (line-beginning-position)
+             (line-beginning-position 2)))))
+
+  (defun prelude-indent-buffer ()
+    "Indents the entire buffer."
+    (interactive)
+    (indent-region (point-min) (point-max)))
+
+  (defun prelude-indent-region-or-buffer ()
+    "Indents a region if selected, otherwise the whole buffer."
+    (interactive)
+    (save-excursion
+      (if (region-active-p)
+          (progn
+            (indent-region (region-beginning) (region-end))
+            (message "Indented selected region."))
+        (progn
+          (prelude-indent-buffer)
+          (message "Indented buffer.")))))
+
+  (defun prelude-annotate-todo ()
+    "Put fringe marker on TODO: lines in the curent buffer."
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "TODO:" nil t)
+        (let ((overlay (make-overlay (- (point) 5) (point))))
+          (overlay-put overlay
+                       'before-string
+                       (propertize (format "A")
+                                   'display '(left-fringe right-triangle)))))))
+
+  (defun prelude-copy-file-name-to-clipboard ()
+    "Put the current file name on the clipboard."
+    (interactive)
+    (let ((filename (if (equal major-mode 'dired-mode)
+                        default-directory
+                      (buffer-file-name))))
+      (when filename
+        (with-temp-buffer
+          (insert filename)
+          (clipboard-kill-region (point-min) (point-max)))
+        (message filename))))
+
+  (defun prelude-duplicate-current-line-or-region (arg)
+    "Duplicates the current line or region ARG times.
+  If there's no region, the current line will be duplicated. However, if
+  there's a region, all lines that region covers will be duplicated."
+    (interactive "p")
+    (let (beg end (origin (point)))
+      (if (and mark-active (> (point) (mark)))
+          (exchange-point-and-mark))
+      (setq beg (line-beginning-position))
+      (if mark-active
+          (exchange-point-and-mark))
+      (setq end (line-end-position))
+      (let ((region (buffer-substring-no-properties beg end)))
+        (dotimes (i arg)
+          (goto-char end)
+          (newline)
+          (insert region)
+          (setq end (point)))
+        (goto-char (+ origin (* (length region) arg) arg)))))
+
+  ;; TODO doesn't work with uniquify
+  (defun prelude-rename-file-and-buffer ()
+    "Renames current buffer and file it is visiting."
+    (interactive)
+    (let ((name (buffer-name))
+          (filename (buffer-file-name)))
+      (if (not (and filename (file-exists-p filename)))
+          (message "Buffer '%s' is not visiting a file!" name)
+        (let ((new-name (read-file-name "New name: " filename)))
+          (cond ((get-buffer new-name)
+                 (message "A buffer named '%s' already exists!" new-name))
+                (t
+                 (rename-file name new-name 1)
+                 (rename-buffer new-name)
+                 (set-visited-file-name new-name)
+                 (set-buffer-modified-p nil)))))))
+
+  (defun prelude-delete-file-and-buffer ()
+    "Kills the current buffer and deletes the file it is visiting"
+    (interactive)
+    (let ((filename (buffer-file-name)))
+      (when filename
+        (delete-file filename)
+        (message "Deleted file %s" filename)))
+    (kill-buffer))
+
+  (defun prelude-view-url ()
+    "Open a new buffer containing the contents of URL."
+    (interactive)
+    (let* ((default (thing-at-point-url-at-point))
+           (url (read-from-minibuffer "URL: " default)))
+      (switch-to-buffer (url-retrieve-synchronously url))
+      (rename-buffer url t)
+      ;; TODO: switch to nxml/nxhtml mode
+      (cond ((search-forward "<?xml" nil t) (xml-mode))
+            ((search-forward "<html" nil t) (html-mode)))))
+
+  ;; We have a number of turn-on-* functions since it's advised that lambda
+  ;; functions not go in hooks. Repeatedly evaluating an add-to-list with a
+  ;; hook value will repeatedly add it since there's no way to ensure
+  ;; that a lambda doesn't already exist in the list.
+
+  (defun prelude-turn-on-whitespace ()
+    (whitespace-mode +1))
+
+  (defun prelude-turn-off-whitespace ()
+    (whitespace-mode -1))
+
+  (defun prelude-turn-on-abbrev ()
+    (abbrev-mode +1))
+
+  (defun prelude-turn-off-abbrev ()
+    (abbrev-mode -1))
+
+  (defun prelude-untabify-buffer ()
+    (interactive)
+    (untabify (point-min) (point-max)))
+
+  (defun prelude-cleanup-buffer ()
+    "Perform a bunch of operations on the whitespace content of a buffer."
+    (interactive)
+    (prelude-indent-buffer)
+    (prelude-untabify-buffer)
+    (whitespace-cleanup))
+
+  (defun prelude-eval-and-replace ()
+    "Replace the preceding sexp with its value."
+    (interactive)
+    (backward-kill-sexp)
+    (condition-case nil
+        (prin1 (eval (read (current-kill 0)))
+               (current-buffer))
+      (error (message "Invalid expression")
+             (insert (current-kill 0)))))
+
+  (defun prelude-recompile-init ()
+    "Byte-compile all your dotfiles again."
+    (interactive)
+    (byte-recompile-directory prelude-dir 0)
+    (byte-recompile-directory prelude-vendor-dir 0))
+
+  (defun prelude-regen-autoloads (&optional force-regen)
+    "Regenerate the autoload definitions file if necessary and load it."
+    (interactive "P")
+    (let ((autoload-dir prelude-vendor-dir)
+          (generated-autoload-file autoload-file))
+      (when (or force-regen
+                (not (file-exists-p autoload-file))
+                (some (lambda (f) (file-newer-than-file-p f autoload-file))
+                      (directory-files autoload-dir t "\\.el$")))
+        (message "Updating autoloads...")
+        (let (emacs-lisp-mode-hook)
+          (update-directory-autoloads autoload-dir))))
+    (load autoload-file))
+
+  (defun prelude-sudo-edit (&optional arg)
+    (interactive "p")
+    (if (or arg (not buffer-file-name))
+        (find-file (concat "/sudo:root@localhost:" (ido-read-file-name "File: ")))
+      (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
+  (defun prelude-switch-or-start (function buffer)
+    "If the buffer is current, bury it, otherwise invoke the function."
+    (if (equal (buffer-name (current-buffer)) buffer)
+        (bury-buffer)
+      (if (get-buffer buffer)
+          (switch-to-buffer buffer)
+        (funcall function))))
+
+  (defun prelude-insert-date ()
+    "Insert a time-stamp according to locale's date and time format."
+    (interactive)
+    (insert (format-time-string "%c" (current-time))))
+
+  (defun prelude-conditionally-enable-paredit-mode ()
+    "Enable paredit-mode in the minibuffer, during eval-expression."
+    (if (eq this-command 'eval-expression)
+        (paredit-mode 1)))
+
+  (add-hook 'minibuffer-setup-hook 'prelude-conditionally-enable-paredit-mode)
+
+  (defun prelude-recentf-ido-find-file ()
+    "Find a recent file using ido."
+    (interactive)
+    (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
+      (when file
+        (find-file file))))
+
+  (defun prelude-swap-windows ()
+    "If you have 2 windows, it swaps them."
+    (interactive)
+    (if (/= (count-windows) 2)
+        (message "You need exactly 2 windows to do this.")
+      (let* ((w1 (first (window-list)))
+             (w2 (second (window-list)))
+             (b1 (window-buffer w1))
+             (b2 (window-buffer w2))
+             (s1 (window-start w1))
+             (s2 (window-start w2)))
+        (set-window-buffer w1 b2)
+        (set-window-buffer w2 b1)
+        (set-window-start w1 s2)
+        (set-window-start w2 s1)))
+    (other-window 1))
+
+  (defun prelude-kill-other-buffers ()
+    "Kill all buffers but the current one. Doesn't mess with special buffers."
+    (interactive)
+    (dolist (buffer (buffer-list))
+      (unless (or (eql buffer (current-buffer)) (not (buffer-file-name buffer)))
+        (kill-buffer buffer))))
+   #+end_src
+** Prelude programming stuff
+   #+begin_src emacs-lisp
+(require 'imenu)
+
+(defun prelude-ido-goto-symbol (&optional symbol-list)
+  "Refresh imenu and jump to a place in the buffer using Ido."
+  (interactive)
+  (unless (featurep 'imenu)
+    (require 'imenu nil t))
+  (cond
+   ((not symbol-list)
+    (let ((ido-mode ido-mode)
+          (ido-enable-flex-matching
+           (if (boundp 'ido-enable-flex-matching)
+               ido-enable-flex-matching t))
+          name-and-pos symbol-names position)
+      (unless ido-mode
+        (ido-mode 1)
+        (setq ido-enable-flex-matching t))
+      (while (progn
+               (imenu--cleanup)
+               (setq imenu--index-alist nil)
+               (prelude-ido-goto-symbol (imenu--make-index-alist))
+               (setq selected-symbol
+                     (ido-completing-read "Symbol? " symbol-names))
+               (string= (car imenu--rescan-item) selected-symbol)))
+      (unless (and (boundp 'mark-active) mark-active)
+        (push-mark nil t nil))
+      (setq position (cdr (assoc selected-symbol name-and-pos)))
+      (cond
+       ((overlayp position)
+        (goto-char (overlay-start position)))
+       (t
+        (goto-char position)))))
+   ((listp symbol-list)
+    (dolist (symbol symbol-list)
+      (let (name position)
+        (cond
+         ((and (listp symbol) (imenu--subalist-p symbol))
+          (prelude-ido-goto-symbol symbol))
+         ((listp symbol)
+          (setq name (car symbol))
+          (setq position (cdr symbol)))
+         ((stringp symbol)
+          (setq name symbol)
+          (setq position
+                (get-text-property 1 'org-imenu-marker symbol))))
+        (unless (or (null position) (null name)
+                    (string= (car imenu--rescan-item) name))
+          (add-to-list 'symbol-names name)
+          (add-to-list 'name-and-pos (cons name position))))))))
+
+(defun prelude-local-comment-auto-fill ()
+  (set (make-local-variable 'comment-auto-fill-only-comments) t)
+  (auto-fill-mode t))
+
+(defun prelude-add-watchwords ()
+  (font-lock-add-keywords
+   nil '(("\\<\\(FIX\\|TODO\\|FIXME\\|HACK\\|REFACTOR\\):"
+          1 font-lock-warning-face t))))
+
+;; show the name of the current function definition in the modeline
+(require 'which-func)
+(which-func-mode 1)
+
+(defun prelude-prog-mode-hook ()
+  "Default coding hook, useful with any programming language."
+  (flyspell-prog-mode)
+  (prelude-local-comment-auto-fill)
+  (prelude-turn-on-whitespace)
+  (prelude-turn-on-abbrev)
+  (prelude-add-watchwords)
+  ;; keep the whitespace decent all the time
+  (add-hook 'before-save-hook 'whitespace-cleanup nil t))
+
+;; in Emacs 24 programming major modes generally derive
+;; from a common mode named prog-mode
+(add-hook 'prog-mode-hook 'prelude-prog-mode-hook)
+
+   #+end_src
+** Prelude key bindings
+   #+begin_src emacs-lisp
+;; You know, like Readline.
+(global-set-key (kbd "C-M-h") 'backward-kill-word)
+
+;; Align your code in a pretty way.
+(global-set-key (kbd "C-x \\") 'align-regexp)
+
+;; Perform general cleanup.
+(global-set-key (kbd "C-c n") 'prelude-cleanup-buffer)
+
+;; Font size
+(define-key global-map (kbd "C-+") 'text-scale-increase)
+(define-key global-map (kbd "C--") 'text-scale-decrease)
+
+;; Jump to a definition in the current file. (This is awesome.)
+(global-set-key (kbd "M-i") 'prelude-ido-goto-symbol)
+
+;; File finding
+(global-set-key (kbd "C-x f") 'prelude-recentf-ido-find-file)
+(global-set-key (kbd "C-c r") 'bury-buffer)
+(global-set-key (kbd "M-`") 'file-cache-minibuffer-complete)
+
+;; Window switching. (C-x o goes to the next window)
+(global-set-key (kbd "C-x O") (lambda ()
+                                (interactive)
+                                (other-window -1))) ;; back one
+
+;; Indentation help
+(global-set-key (kbd "C-x ^") 'join-line)
+(global-set-key (kbd "C-M-\\") 'prelude-indent-region-or-buffer)
+
+;; Start proced in a similar manner to dired
+(global-set-key (kbd "C-x p") 'proced)
+
+;; Start eshell or switch to it if it's active.
+(global-set-key (kbd "C-x m") 'eshell)
+
+;; Start a new eshell even if one is active.
+(global-set-key (kbd "C-x M") (lambda () (interactive) (eshell t)))
+
+;; Start a regular shell if you prefer that.
+(global-set-key (kbd "C-x M-m") 'shell)
+
+;; If you want to be able to M-x without meta
+(global-set-key (kbd "C-x C-m") 'execute-extended-command)
+
+;; Fetch the contents at a URL, display it raw.
+(global-set-key (kbd "C-x C-h") 'prelude-view-url)
+
+;; A complementary binding to the apropos-command(C-h a)
+(global-set-key (kbd "C-h A") 'apropos)
+
+;; Should be able to eval-and-replace anywhere.
+(global-set-key (kbd "C-c e") 'prelude-eval-and-replace)
+
+;; Activate occur easily inside isearch
+(define-key isearch-mode-map (kbd "C-o")
+  (lambda () (interactive)
+    (let ((case-fold-search isearch-case-fold-search))
+      (occur (if isearch-regexp
+                 isearch-string
+               (regexp-quote isearch-string))))))
+
+;; cycle through buffers
+(global-set-key (kbd "<C-tab>") 'bury-buffer)
+
+;; use hippie-expand instead of dabbrev
+(global-set-key (kbd "M-/") 'hippie-expand)
+
+;; replace buffer-menu with ibuffer
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+;; swap windows
+(global-set-key (kbd "C-c s") 'prelude-swap-windows)
+
+;; duplicate the current line or region
+(global-set-key (kbd "C-c d") 'prelude-duplicate-current-line-or-region)
+
+;; rename buffer & visited file
+(global-set-key (kbd "C-c r") 'prelude-rename-file-and-buffer)
+
+;; open an ansi-term buffer
+(global-set-key (kbd "C-x t") 'prelude-visit-term-buffer)
+
+;; kill other buffers
+(global-set-key (kbd "C-c k o") 'prelude-kill-other-buffers)
+
+;; search with google
+(global-set-key (kbd "C-c g") 'prelude-google)
+
+;; open in external application
+(global-set-key (kbd "C-c o") 'prelude-open-with)
+
+;; toggle menu-bar visibility
+(global-set-key (kbd "<f12>") 'menu-bar-mode)
+
+;; real Emacs hackers don't use the arrow keys
+;; (global-set-key (kbd "<up>") (lambda ()
+;;                                (interactive)
+;;                                (message "Arrow key navigation is disabled. Use C-p instead.")))
+;; (global-set-key (kbd "<down>") (lambda ()
+;;                                  (interactive)
+;;                                  (message "Arrow key navigation is disabled. Use C-n instead.")))
+;; (global-set-key (kbd "<left>") (lambda ()
+;;                                  (interactive)
+;;                                  (message "Arrow key navigation is disabled. Use C-b instead.")))
+;; (global-set-key (kbd "<right>") (lambda ()
+;;                                   (interactive)
+;;                                   (message "Arrow key navigation is disabled. Use C-f instead.")))
+
+   #+end_src
+
+* Problems
+** auctex
+   #+begin_example
+   Warning (initialization): An error occurred while loading `/Users/seth/.emacs.d/init.el':
+
+   error: el-get: ./configure el-get could not build auctex [./configure --with-lispdir=`pwd` --with-emacs=/Applications/Emacs.app/Contents/MacOS/Emacs]
+   checking for latex... /usr/texbin/latex
+   checking for pdflatex... /usr/texbin/pdflatex
+   checking for tex... /usr/texbin/tex
+   checking for prefix from kpsepath... "/usr/texbin"
+   checking for TDS-compliant directory... no
+   checking for TeX directory hierarchy... no
+   checking for TeX input directory... no
+   configure: error: Cannot find the texmf directory!
+   Please use --with-texmf-dir=dir to specify where the preview tex files go
+   configure: error: ./configure failed for preview
+
+   #+end_example
