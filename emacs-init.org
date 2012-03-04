@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-03-04 08:44 PST>
+# Time-stamp: <2012-03-04 09:23 PST>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -118,50 +118,42 @@
    #+end_src
 ** Coding stuff
    #+begin_src emacs-lisp
-    (setq lisp-modes '(clojure
-                       emacs-lisp
-                       lfe
-                       scheme)
-          code-modes (apply #'append
-                            (list lisp-modes
-                                  '(erlang
-                                    haskell
-                                    julia
-                                    perl
-                                    python
-                                    ruby
-                                    sh
-                                    vhdl))))
-
-    ;; lisp modes
-
-    (defun my-lisp-mode-hook ()
-      (font-lock-add-keywords
-       nil `(("(\\(lambda\\>\\)"
-              (0 (progn (compose-region (match-beginning 1) (match-end 1)
-                                        ,(make-char 'greek-iso8859-7 107))
-                        nil))))))
-
-    (add-hook-to-modes lisp-modes 'my-lisp-mode-hook)
-
-    (defun my-code-mode-hook ()
-      (local-set-key (kbd "C-m") 'newline-and-indent))
-
-    (add-hook-to-modes code-modes 'my-code-mode-hook)
-    (add-hook-to-modes code-modes 'my-whitespace-mode-hook)
-
-    ;; paredit - cruise-control for lisp editing
-
-    (defun my-paredit-mode-hook ()
-      (show-paren-mode t)
-      (paredit-mode t)
-      (local-set-key (kbd "C-c (") 'paredit-backward-slurp-sexp)
-      (local-set-key (kbd "C-c )") 'paredit-forward-slurp-sexp)
-      (local-set-key (kbd "C-c 9") 'paredit-backward-barf-sexp)
-      (local-set-key (kbd "C-c 0") 'paredit-forward-barf-sexp))
-
-    (defun after-paredit ()
-      (add-hook-to-modes lisp-modes 'my-paredit-mode-hook))
+     (setq lisp-modes '(clojure
+                        emacs-lisp
+                        lfe
+                        scheme)
+           code-modes (apply #'append
+                             (list lisp-modes
+                                   '(erlang
+                                     haskell
+                                     julia
+                                     perl
+                                     python
+                                     ruby
+                                     sh
+                                     vhdl))))
+     ;; lisp modes
+     (defun my-lisp-mode-hook ()
+       (font-lock-add-keywords
+        nil `(("(\\(lambda\\>\\)"
+               (0 (progn (compose-region (match-beginning 1) (match-end 1)
+                                         ,(make-char 'greek-iso8859-7 107))
+                         nil))))))
+     (add-hook-to-modes lisp-modes 'my-lisp-mode-hook)
+     (defun my-code-mode-hook ()
+       (local-set-key (kbd "C-m") 'newline-and-indent))
+     (add-hook-to-modes code-modes 'my-code-mode-hook)
+     (add-hook-to-modes code-modes 'my-whitespace-mode-hook)
+     ;; paredit - cruise-control for lisp editing
+     (defun my-paredit-mode-hook ()
+       (show-paren-mode t)
+       (paredit-mode t)
+       (local-set-key (kbd "C-c (") 'paredit-backward-slurp-sexp)
+       (local-set-key (kbd "C-c )") 'paredit-forward-slurp-sexp)
+       (local-set-key (kbd "C-c 9") 'paredit-backward-barf-sexp)
+       (local-set-key (kbd "C-c 0") 'paredit-forward-barf-sexp))
+     (defun after-paredit ()
+       (add-hook-to-modes lisp-modes 'my-paredit-mode-hook))
    #+end_src
 ** Flyspell
    #+begin_src emacs-lisp
