@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-03-03 21:28 PST>
+# Time-stamp: <2012-03-04 08:44 PST>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -45,73 +45,70 @@
 * Editor Config
 ** Misc
    #+begin_src emacs-lisp
-    ;; Death to the tabs!
-    (setq-default indent-tabs-mode nil)
+     (setq-default indent-tabs-mode nil)
 
-    ;; enabled auto-fill mode in text-mode and all related modes
-    (add-hook 'text-mode-hook 'turn-on-auto-fill)
+     ;; enabled auto-fill mode in text-mode and all related modes
+     (add-hook 'text-mode-hook 'turn-on-auto-fill)
 
-    ;; enable narrow to region
-    (put 'narrow-to-region 'disabled nil)
+     ;; enable narrow to region
+     (put 'narrow-to-region 'disabled nil)
 
-    ;; dired - reuse current buffer by pressing 'a'
-    (put 'dired-find-alternate-file 'disabled nil)
+     ;; dired - reuse current buffer by pressing 'a'
+     (put 'dired-find-alternate-file 'disabled nil)
 
-    ;; revert buffers automatically when underlying files are changed externally
-    (global-auto-revert-mode t)
+     ;; revert buffers automatically when underlying files are changed externally
+     (global-auto-revert-mode t)
 
-    ;; bookmarks
-    (setq bookmark-default-file (concat user-emacs-directory "bookmarks")
-          bookmark-save-flag 1)
+     ;; bookmarks
+     (setq bookmark-default-file (concat user-emacs-directory "bookmarks")
+           bookmark-save-flag 1)
 
-    (if (eq system-type 'darwin)
-        (push "/usr/local/bin" exec-path))
+     (if (eq system-type 'darwin)
+         (push "/usr/local/bin" exec-path))
 
-    ;; delete the selection with a keypress
-    ;; (delete-selection-mode t)
+     ;; delete the selection with a keypress
+     ;; (delete-selection-mode t)
 
-    ;; ;; smart indenting and pairing for all
-    ;; (electric-pair-mode t)
-    ;; (electric-indent-mode t)
-    ;; (electric-layout-mode t)
+     ;; ;; smart indenting and pairing for all
+     ;; (electric-pair-mode t)
+     ;; (electric-indent-mode t)
+     ;; (electric-layout-mode t)
 
-    ;; time-stamps
-    ;; when there's "Time-stamp: <>" in the first 10 lines of the file
-    (setq time-stamp-active t
-          ;; check first 10 buffer lines for Time-stamp: <>
-          time-stamp-line-limit 10
-          time-stamp-format "%04y-%02m-%02d %02H:%02M %Z") ; date format
-    (add-hook 'write-file-hooks 'time-stamp) ; update when saving
+     ;; time-stamps
+     ;; when there's "Time-stamp: <>" in the first 10 lines of the file
+     (setq time-stamp-active t
+           ;; check first 10 buffer lines for Time-stamp: <>
+           time-stamp-line-limit 10
+           time-stamp-format "%04y-%02m-%02d %02H:%02M %Z") ; date format
+     (add-hook 'write-file-hooks 'time-stamp) ; update when saving
+     ;; ;; use shift + arrow keys to switch between visible buffers
+     ;; (require 'windmove)
+     ;; (windmove-default-keybindings 'meta)
+     ;; tramp, for sudo access
+     (require 'tramp)
+     ;; keep in mind known issues with zsh - see emacs wiki
+     (setq tramp-default-method "ssh")
+     (server-start)
 
-    ;; ;; use shift + arrow keys to switch between visible buffers
-    ;; (require 'windmove)
-    ;; (windmove-default-keybindings 'meta)
+     (defun buffer-cleanup ()
+       "Clean up the buffer"
+       (interactive)
+       (delete-blank-lines)
+       (delete-trailing-whitespace)
+       (untabify (point-min) (point-max))
+       (indent-region (point-min) (point-max)))
 
-    ;; tramp, for sudo access
-    (require 'tramp)
-    ;; keep in mind known issues with zsh - see emacs wiki
-    (setq tramp-default-method "ssh")
-
-    (setq indent-tabs-mode nil)
-
-    (defun buffer-cleanup ()
-      "Clean up the buffer"
-      (interactive)
-      (delete-blank-lines)
-      (delete-trailing-whitespace)
-      (untabify (point-min) (point-max))
-      (indent-region (point-min) (point-max)))
-
-    (global-set-key (kbd "C-c n") 'buffer-cleanup)
-    (global-set-key (kbd "C-c r") 'align-regexp)
+     (global-set-key (kbd "C-c n") 'buffer-cleanup)
+     (global-set-key (kbd "C-c r") 'align-regexp)
 
 
-    ;; whitespace - because it's evil
+     ;; whitespace - because it's evil
 
-    (defun my-whitespace-mode-hook ()
-      (setq whitespace-action '(auto-cleanup)
-            whitespace-style  '(face tabs trailing lines-tail empty))
-      (whitespace-mode))
+     (defun my-whitespace-mode-hook ()
+       (setq whitespace-action '(auto-cleanup)
+             whitespace-style  '(face tabs trailing lines-tail empty))
+       (whitespace-mode))
+
    #+end_src
 ** yasnippet
    #+begin_src emacs-lisp
