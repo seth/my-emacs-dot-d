@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-03-04 09:23 PST>
+# Time-stamp: <2012-03-04 10:41 PST>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -306,7 +306,6 @@
           ("gnu"       . "http://elpa.gnu.org/packages/")
           ))
   #+end_src
-
 ** el-get package after hooks
 *** ess
     #+begin_src emacs-lisp
@@ -461,7 +460,10 @@
      org-enforce-todo-dependencies t
      org-velocity-bucket "~/Notebook/org/solutions.org"
      org-default-notes-file (concat org-directory "/notes.org")
-     org-log-done t)
+     org-log-done t
+     ;; this prevents org-mode from adding leading whitespace to code
+     ;; blocks after editing
+     org-src-preserve-indentation t)
 
     ;; capture setup
     (setq org-capture-templates
