@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-03-04 10:41 PST>
+# Time-stamp: <2012-03-05 14:23 PST>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -106,7 +106,9 @@
 
      (defun my-whitespace-mode-hook ()
        (setq whitespace-action '(auto-cleanup)
-             whitespace-style  '(face tabs trailing lines-tail empty))
+             whitespace-style  '(face tabs trailing lines-tail empty)
+             ;; use fill-column value instead
+             whitespace-line-column nil)
        (whitespace-mode))
 
    #+end_src
