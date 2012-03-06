@@ -257,7 +257,7 @@
   (show-paren-mode t)
   (setq show-paren-style 'parenthesis)
 
-  (global-hl-line-mode +1)
+  (global-hl-line-mode -1)
    #+end_src
 
 ** Buffer naming, place saving, recent files, and minibuffer details
