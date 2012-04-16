@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-03-05 14:23 PST>
+# Time-stamp: <2012-04-04 10:39 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -112,6 +112,11 @@
        (whitespace-mode))
 
    #+end_src
+*** tramp customization
+#+BEGIN_SRC emacs-lisp
+    (add-to-list 'tramp-default-proxies-alist
+                 '("\\.opscode\\.piab\\'" "\\`root\\'" "/ssh:vagrant@%h:"))
+#+END_SRC
 ** yasnippet
    #+begin_src emacs-lisp
     ;; ;; load yasnippet
