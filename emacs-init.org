@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-04-04 10:39 PDT>
+# Time-stamp: <2012-05-13 09:56 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -150,7 +150,7 @@
      (defun my-code-mode-hook ()
        (local-set-key (kbd "C-m") 'newline-and-indent))
      (add-hook-to-modes code-modes 'my-code-mode-hook)
-     (add-hook-to-modes code-modes 'my-whitespace-mode-hook)
+     ;;(add-hook-to-modes code-modes 'my-whitespace-mode-hook)
      ;; paredit - cruise-control for lisp editing
      (defun my-paredit-mode-hook ()
        (show-paren-mode t)
@@ -257,8 +257,6 @@
 
 ** Color theme selection, line and paren highlighting
    #+begin_src emacs-lisp
-  (load-theme 'wheatgrass t)
-
   (show-paren-mode t)
   (setq show-paren-style 'parenthesis)
 
@@ -305,6 +303,14 @@
 
 * Packages and el-git
 
+  #+begin_src emacs-lisp
+    (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+    (unless (require 'el-get nil t) 
+      (url-retrieve
+       "https://raw.github.com/dimitri/el-get/master/el-get-install.el" 
+       (lambda (s) (goto-char (point-max)) (eval-print-last-sexp))))
+    
+  #+end_src
   List the ELPA repositories to scan.
   #+begin_src emacs-lisp
   (setq package-archives
@@ -525,107 +531,119 @@
    incrementally using =add-to-list= so that each item can be in its own
    section for nice folding and isolation.
    #+begin_src emacs-lisp
-      (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-
-      (unless (require 'el-get nil t)
-        (with-current-buffer
-            (url-retrieve-synchronously
-             "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-          (let (el-get-master-branch)
-            (end-of-buffer)
-            (eval-print-last-sexp))))
-      ;;
-      ;; el-get Sources
-      ;;
-      (setq
-       el-get-git-shallow-clone t
-       el-get-github-default-url-type 'git
-       el-get-sources
-       '(
-         (:name confluence
-                :type http-tar
-                :url "http://confluence-el.googlecode.com/files/confluence-el-1.5.tar.gz"
-                :localname "confluence-el-1.5.tar.gz"
-                :options ("xzf")
-                :after (progn (after-confluence))
-                :features confluence)
-         (:name magit
-                :type git
-                :url "https://github.com/magit/magit.git"
-                :features magit
-                :after (progn (after-magit)))
-         (:name ess
-                :after (progn (after-ess)))
-         (:name org-mode
-                :type git
-                :url "git://repo.or.cz/org-mode.git"
-                :load-path ("lisp" "contrib/lisp")
-                :after (progn (after-org-mode)))
-         (:name emacs_chrome
-                :type git
-                :url "https://github.com/stsquad/emacs_chrome"
-                :load-path ("servers")
-                :features edit-server
-                :after (progn (edit-server-start)))
-         (:name erlang
-                :type github
-                :pkgname "erlang/otp"
-                :load-path ("lib/tools/emacs")
-                :shallow t
-                :after (progn (after-erlang)))
-         (:name fic-ext-mode :after (progn (after-fic-ext-mode)))
-         (:name smex :after (progn (after-smex)))
-         (:name magithub)
-         (:name lua-mode)
-         (:name nginx-mode)
-         ;; (:name nagios-mode)
-         (:name pastebin)
-         (:name pg)
-         (:name dirtree
-                :description "Directory tree views in Emacs"
-                :type git
-                :url "https://github.com/zkim/emacs-dirtree.git"
-                :depends (tree-mode windata)
-                :features dirtree)
-         (:name fill-column-indicator
-                :type git
-                :url "git://github.com/alpaker/Fill-Column-Indicator.git"
-                :features fill-column-indicator)
-         (:name linum+
-                :type emacswiki
-                :features linum+)
-         (:name rhtml
-                :type git
-                :url "https://github.com/crazycode/rhtml.git"
-                :features rhtml-mode)
-         (:name ruby-mode
-                :type svn
-                :url "http://svn.ruby-lang.org/repos/ruby/trunk/misc/")
-         (:name tree-mode
-                :type emacswiki
-                :features tree-mode)
-         (:name windata
-                :type emacswiki
-                :features windata)))
-      ;;
-      ;; My Packages
-      ;;
-      (setq my-packages
-            (append
-             '(full-ack
-               gist
-               haml-mode
-               markdown-mode
-               paredit
-               sass-mode
-               scss-mode
-               yaml-mode
-               zenburn-theme)
-             (mapcar 'el-get-source-name el-get-sources)))
-
-      (el-get 'sync my-packages)
-      (el-get 'wait)
-
+     (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+     
+     (unless (require 'el-get nil t)
+       (with-current-buffer
+           (url-retrieve-synchronously
+            "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+         (let (el-get-master-branch)
+           (end-of-buffer)
+           (eval-print-last-sexp))))
+     ;;
+     ;; el-get Sources
+     ;;
+     (setq
+      el-get-git-shallow-clone t
+      el-get-github-default-url-type 'git
+      el-get-sources
+      '(
+        (:name sellout-solarized-theme
+               :type git
+               :url "https://github.com/sellout/emacs-color-theme-solarized.git"
+               :post-init (progn (add-to-list 'custom-theme-load-path
+                                              default-directory)
+                                 (load-theme 'solarized-dark t)))
+        (:name confluence
+               :type http-tar
+               :url "http://confluence-el.googlecode.com/files/confluence-el-1.5.tar.gz"
+               :localname "confluence-el-1.5.tar.gz"
+               :options ("xzf")
+               :after (progn (after-confluence))
+               :features confluence)
+        (:name magit
+               :type git
+               :url "https://github.com/magit/magit.git"
+               :features magit
+               :after (progn (after-magit)))
+        (:name ess
+               :after (progn (after-ess)))
+        (:name org-mode
+               :type git
+               :url "git://repo.or.cz/org-mode.git"
+               :load-path ("lisp" "contrib/lisp")
+               :after (progn (after-org-mode)))
+        (:name emacs_chrome
+               :type git
+               :url "https://github.com/stsquad/emacs_chrome"
+               :load-path ("servers")
+               :features edit-server
+               :after (progn (edit-server-start)))
+        (:name erlang
+               :type github
+               :pkgname "erlang/otp"
+               :load-path ("lib/tools/emacs")
+               :shallow t
+               :after (progn (after-erlang)))
+        (:name fic-ext-mode :after (progn (after-fic-ext-mode)))
+        (:name smex :after (progn (after-smex)))
+        (:name magithub
+               ;; there's something odd going on w/ magithub or el-get
+               ;; https://github.com/dimitri/el-get/issues/446
+               ;; https://github.com/dimitri/el-get/pull/543
+               ;; if this acts up, try explicitly adding magithub to
+               ;; the load-path by uncommenting this:
+               ;;
+               ;; :before (add-to-list 'load-path default-directory)
+               )
+        (:name lua-mode)
+        (:name nginx-mode)
+        ;; (:name nagios-mode)
+        (:name pastebin)
+        (:name pg)
+        (:name dirtree
+               :description "Directory tree views in Emacs"
+               :type git
+               :url "https://github.com/zkim/emacs-dirtree.git"
+               :depends (tree-mode windata)
+               :features dirtree)
+        (:name fill-column-indicator
+               :type git
+               :url "git://github.com/alpaker/Fill-Column-Indicator.git"
+               :features fill-column-indicator)
+        (:name linum+
+               :type emacswiki
+               :features linum+)
+        (:name rhtml
+               :type git
+               :url "https://github.com/crazycode/rhtml.git"
+               :features rhtml-mode)
+        (:name ruby-mode
+               :type svn
+               :url "http://svn.ruby-lang.org/repos/ruby/trunk/misc/")
+        (:name tree-mode
+               :type emacswiki
+               :features tree-mode)
+        (:name windata
+               :type emacswiki
+               :features windata)))
+     ;;
+     ;; My Packages
+     ;;
+     (setq my-packages
+           (append
+            '(full-ack
+              haml-mode
+              markdown-mode
+              paredit
+              sass-mode
+              scss-mode
+              yaml-mode)
+            (mapcar 'el-get-source-name el-get-sources)))
+     
+     (el-get 'sync my-packages)
+     (el-get 'wait)
+     
    #+end_src
 * My misc config
   :PROPERTIES:
@@ -1124,7 +1142,7 @@
   "Default coding hook, useful with any programming language."
   (flyspell-prog-mode)
   (prelude-local-comment-auto-fill)
-  (prelude-turn-on-whitespace)
+  ;;(prelude-turn-on-whitespace)
   (prelude-turn-on-abbrev)
   (prelude-add-watchwords)
   ;; keep the whitespace decent all the time
