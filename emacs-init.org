@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-05-13 09:56 PDT>
+# Time-stamp: <2012-05-13 10:13 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -27,7 +27,28 @@
   (expand-file-name "emacs-init.org"
                    user-emacs-directory))
   #+end_example
+* Using emacs in iTerm2
+  To get a usable color theme in terminal mode (e.g. =emacsclient
+  -nw=) I installed the [[https://github.com/altercation/solarized][solarized color]] theme into iTerm2. I used the
+  [[http://ethanschoonover.com/solarized/files/solarized.zip][zip file]] and then followed the steps from the README for iTerm2:
 
+  #+begin_quote
+  Open iTerm 2, open Preferences, click on the "Profiles" (formerly
+  Addresses, formerly Bookmarks) icon in the preferences toolbar, then
+  select the "colors" tab. Click on the "load presets" and select
+  "import...". Select the Solaris Light or Dark theme file.
+
+  You have now loaded the Solarized color presets into iTerm 2, but
+  haven't yet applied them. To apply them, simply select an existing
+  profile from the profile list window on the left, or create a new
+  profile. Then select the Solarized Dark or Solarized Light preset
+  from the "Load Presets" drop down.
+  #+end_quote
+
+  This config installs a version of the solarized theme for Emacs via
+  el-get (see below). I've found that if you call load-theme in the
+  terminal you get it to work, but then cocoa Emacs looks funny (and
+  vice versa).
 * Defuns
   #+begin_src emacs-lisp
   (defun add-hook-to-modes (modes hook)
