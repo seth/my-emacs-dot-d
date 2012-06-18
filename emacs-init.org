@@ -122,16 +122,6 @@
      (global-set-key (kbd "C-c n") 'buffer-cleanup)
      (global-set-key (kbd "C-c r") 'align-regexp)
 
-
-     ;; whitespace - because it's evil
-
-     (defun my-whitespace-mode-hook ()
-       (setq whitespace-action '(auto-cleanup)
-             whitespace-style  '(face tabs trailing lines-tail empty)
-             ;; use fill-column value instead
-             whitespace-line-column nil)
-       (whitespace-mode))
-
    #+end_src
 *** tramp customization
 #+BEGIN_SRC emacs-lisp
@@ -1161,13 +1151,13 @@
 
 (defun prelude-prog-mode-hook ()
   "Default coding hook, useful with any programming language."
-  (flyspell-prog-mode)
+  ;; (flyspell-prog-mode)
   (prelude-local-comment-auto-fill)
   ;;(prelude-turn-on-whitespace)
   (prelude-turn-on-abbrev)
-  (prelude-add-watchwords)
-  ;; keep the whitespace decent all the time
-  (add-hook 'before-save-hook 'whitespace-cleanup nil t))
+  (prelude-add-watchwords))
+;;  ;; keep the whitespace decent all the time
+;;  (add-hook 'before-save-hook 'whitespace-cleanup nil t))
 
 ;; in Emacs 24 programming major modes generally derive
 ;; from a common mode named prog-mode
