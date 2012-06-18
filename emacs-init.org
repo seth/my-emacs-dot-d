@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-05-13 10:13 PDT>
+# Time-stamp: <2012-06-17 20:38 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -51,15 +51,26 @@
   vice versa).
 * Defuns
   #+begin_src emacs-lisp
-  (defun add-hook-to-modes (modes hook)
-    (dolist (mode modes)
-      (add-hook (intern (concat (symbol-name mode) "-mode-hook"))
-    hook)))
+    (defun add-hook-to-modes (modes hook)
+      (dolist (mode modes)
+        (add-hook (intern (concat (symbol-name mode) "-mode-hook"))
+                  hook)))
 
-  (defun halt ()
-    (interactive)
-    (save-some-buffers)
-    (kill-emacs))
+    (defun halt ()
+      (interactive)
+      (save-some-buffers)
+      (kill-emacs))
+
+    (defun my-whitespace-mode-hook ()
+      (setq whitespace-action '(auto-cleanup)
+            whitespace-style  '(face tabs trailing lines-tail empty)
+            ;; use fill-column value instead
+            whitespace-line-column nil)
+      (whitespace-mode))
+
+    (defun my-makefile-mode-hook ()
+      (setq indent-tabs-mode t
+            tab-width 4))
 
   #+end_src
 
