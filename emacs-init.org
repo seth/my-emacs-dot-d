@@ -174,6 +174,9 @@
        (add-hook-to-modes lisp-modes 'my-paredit-mode-hook))
    #+end_src
 ** Flyspell
+Flyspell provides nice inline spelling correction. Unfortunately, it
+make Emacs very unresponsive for typing which turns out to be mainly
+what I want to use Emacs for.
    #+begin_src emacs-lisp
       ;; flyspell-mode does spell-checking on the fly as you type
     (setq ispell-program-name "aspell" ; use aspell instead of ispell
