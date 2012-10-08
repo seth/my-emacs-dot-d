@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-10-06 15:40 PDT>
+# Time-stamp: <2012-10-08 10:09 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -725,12 +725,9 @@ Make magical timestamps
 
 #+end_src
 ** yasnippet
-   :PROPERTIES:
-   :tangle:   no
-   :END:
 This is a great snippet/template generator. I should use it, but never
 seem to get in the habit of it.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 ;; load yasnippet
 (require 'yasnippet)
 (yas/initialize)
@@ -1276,15 +1273,12 @@ long lines of code.
   :ta:       no
   :END:
 ** cucumber mode
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (require 'feature-mode)
 (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
 #+end_src
 * Junk Drawer
-  :PROPERTIES:
-  :tangle:   no
-  :END:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (require 'rspec-mode)
 
 ;; lua!
@@ -1301,13 +1295,10 @@ long lines of code.
          "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
 #+end_src
 * Peepopen
-  :PROPERTIES:
-  :tangle:   no
-  :END:
 This is a great little utility if you are adicted to TextMate style
 file opening. It works pretty well, but I can't seem to make a habit
 of using it over the ido stuff.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 ;; textmate and peep open
 ;(require 'textmate)
 ;(require 'peepopen)
