@@ -930,13 +930,6 @@ Add el-get to load-path and install if not already present.
    "https://raw.github.com/dimitri/el-get/master/el-get-install.el" 
    (lambda (s) (goto-char (point-max)) (eval-print-last-sexp))))
 #+END_SRC
-List the ELPA repositories to scan.
-#+BEGIN_SRC emacs-lisp
-(setq package-archives
-      '(("marmalade" . "http://marmalade-repo.org/packages/")
-        ("gnu"       . "http://elpa.gnu.org/packages/")
-        ))
-#+END_SRC
 We'll put the el-get packages we want in the =el-get-sources= list
 which we add to below. Also a helper function for adding items to the
 list.
@@ -1149,10 +1142,12 @@ long lines of code.
 #+END_SRC
 *** org-mode
 #+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name org-mode :after (progn (after-org-mode))))
+(sf/add-pkg (:name org-plus-contrib
+                   :type elpa
+                   :after (progn (after-org-mode))))
 
 (defun after-org-mode ()
-    (require 'org-install)
+    (require 'org)
     (require 'org-velocity)
     (global-set-key (kbd "C-c 0") 'org-velocity-read)
     (define-key global-map "\C-c1" 'org-capture)
@@ -1222,27 +1217,34 @@ long lines of code.
     )
 #+END_SRC
 
+*** package (last)
+#+begin_src emacs-lisp
+(sf/add-pkg (:name package
+                   :after (progn
+                            (add-to-list
+                             'package-archives
+                             '("org" . "http://orgmode.org/elpa/") t))))
+#+end_src
 ** Tell el-get to install All The Things
    So might be worth cleaning this up by defining el-get-sources
    incrementally using =add-to-list= so that each item can be in its own
    section for nice folding and isolation.
    #+begin_src emacs-lisp
-     (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-     
-     (unless (require 'el-get nil t)
-       (with-current-buffer
-           (url-retrieve-synchronously
-            "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-         (let (el-get-master-branch)
-           (end-of-buffer)
-           (eval-print-last-sexp))))
-     (setq
-      el-get-git-shallow-clone t
-      el-get-github-default-url-type 'git
-      my-packages (mapcar 'el-get-source-name el-get-sources))
-     (el-get 'sync my-packages)
-     (el-get 'wait)
-     
+(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+
+(unless (require 'el-get nil t)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+    (let (el-get-master-branch)
+      (end-of-buffer)
+      (eval-print-last-sexp))))
+(setq
+ el-get-git-shallow-clone t
+ el-get-github-default-url-type 'git
+ my-packages (mapcar 'el-get-source-name el-get-sources))
+(el-get 'sync my-packages)
+
    #+end_src
 * Random misc add ons and such
 ** wrangler
