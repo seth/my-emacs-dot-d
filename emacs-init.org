@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-10-08 10:09 PDT>
+# Time-stamp: <2012-10-25 12:43 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -29,9 +29,9 @@
   #+end_example
 
   Customizations set using Emacs' customization system go here.
-  #+begin_src emacs-lisp
+  #+BEGIN_SRC emacs-lisp
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-  #+end_src
+  #+END_SRC
 * Using emacs in iTerm2
   To get a usable color theme in terminal mode (e.g. =emacsclient
   -nw=) I installed the [[https://github.com/altercation/solarized][solarized color]] theme into iTerm2. I used the
@@ -57,7 +57,7 @@
 * Defuns
 Helper functions to use either in an editing session or to help with
 configuration
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (require 'cl)
 
 (defun add-hook-to-modes (modes hook)
@@ -80,9 +80,9 @@ configuration
 (defun my-makefile-mode-hook ()
   (setq indent-tabs-mode t
         tab-width 4))
-#+end_src
+#+END_SRC
 ** Prelude defuns and such
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
   ;;; prelude-core.el --- Emacs Prelude: core Prelude defuns.
   ;;
   ;; Copyright (c) 2011 Bozhidar Batsov
@@ -428,10 +428,10 @@ configuration
     (dolist (buffer (buffer-list))
       (unless (or (eql buffer (current-buffer)) (not (buffer-file-name buffer)))
         (kill-buffer buffer))))
-   #+end_src
+   #+END_SRC
 * Key Bindings
 These are shamelessly borrowed from the [[http://batsov.com/prelude/][emacs-prelude]] project.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; For Mac OS X systems
 (when (eq system-type 'darwin)
   (setq mac-command-modifier 'meta)
@@ -534,7 +534,7 @@ These are shamelessly borrowed from the [[http://batsov.com/prelude/][emacs-prel
 ;;                                   (interactive)
 ;;                                   (message "Arrow key navigation is disabled. Use C-f instead.")))
 
-#+end_src
+#+END_SRC
 
 * System environment PATH for OS X
 There are [[http://emacswiki.org/emacs/EmacsApp#toc2][various approaches]] to setting PATH in Emacs on OS X. I opted
@@ -542,7 +542,7 @@ for a non-automagic approach because =~/.MacOSX/environment.plist=
 seems annoying to deal. Having PATH set in a simple explicit way seems
 like it will be easier to debug, even if it means having to remember
 to update it occationally.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (if (eq system-type 'darwin)
     (let* ((path-elts
             '("/Users/seth/bin"
@@ -562,13 +562,13 @@ to update it occationally.
       ;; also set exec-path to be same
       (mapc (lambda (elt) (add-to-list 'exec-path elt))
     new-path-elts)))
-#+end_src
+#+END_SRC
 
 In order to use =emacsclient= you have to start the server. You want
 this.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (server-start)
-#+end_src
+#+END_SRC
 * PROGRAMMING ROAR
 ** imenu symbol lookup
 This bit of magic binds =M-i= to a function that knows how to identify
@@ -577,7 +577,7 @@ navigating files with many functions quite nice.
 
 This was taken from [[http://batsov.com/prelude/][prelude]] although I had a slightly different
 version, perhaps from the emacs-starter-kit prior to that.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; Jump to a definition in the current file. (This is awesome.)
 (global-set-key (kbd "M-i") 'prelude-ido-goto-symbol)
 
@@ -632,9 +632,9 @@ version, perhaps from the emacs-starter-kit prior to that.
                     (string= (car imenu--rescan-item) name))
           (add-to-list 'symbol-names name)
           (add-to-list 'name-and-pos (cons name position))))))))
-#+end_src
+#+END_SRC
 ** Coding mode config items
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
      (setq lisp-modes '(clojure
                         emacs-lisp
                         lfe
@@ -671,26 +671,26 @@ version, perhaps from the emacs-starter-kit prior to that.
        (local-set-key (kbd "C-c 0") 'paredit-forward-barf-sexp))
      (defun after-paredit ()
        (add-hook-to-modes lisp-modes 'my-paredit-mode-hook))
-   #+end_src
+   #+END_SRC
 * Dealing with text
 ** No tabs, please.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq-default indent-tabs-mode nil)
-#+end_src
+#+END_SRC
 ** Auto-fill (wrap) in text modes.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
-#+end_src
+#+END_SRC
 ** Allow narrowing
 This allows you to focus in on a part of a file and make your buffer
 only show this part. Useful for doing buffer global search and
 replace, for example, when you only want to impact a part of a file.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (put 'narrow-to-region 'disabled nil)
-#+end_src
+#+END_SRC
 ** Dealing with and cleanup of whitespace
 Helper function for cleaning whitespace from buffers.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (defun buffer-cleanup ()
   "Clean up the buffer"
   (interactive)
@@ -700,16 +700,16 @@ Helper function for cleaning whitespace from buffers.
   (indent-region (point-min) (point-max)))
 
 (global-set-key (kbd "C-c n") 'buffer-cleanup)
-#+end_src
+#+END_SRC
 ** Generic aligning of code
 Bind a key for aligning code by refexp
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; Align your code in a pretty way.
 (global-set-key (kbd "C-x \\") 'align-regexp)
-#+end_src
+#+END_SRC
 ** Magic timestamps? Sure, why not
 Make magical timestamps
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; time-stamps
 ;; when there's "Time-stamp: <>" in the first 10 lines of the file
 (setq time-stamp-active t
@@ -723,11 +723,11 @@ Make magical timestamps
 ;; (windmove-default-keybindings 'meta)
 ;; tramp, for sudo access
 
-#+end_src
+#+END_SRC
 ** yasnippet
 This is a great snippet/template generator. I should use it, but never
 seem to get in the habit of it.
-#+begin_src emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 ;; load yasnippet
 (require 'yasnippet)
 (yas/initialize)
@@ -743,12 +743,12 @@ seem to get in the habit of it.
                ad-do-it)))))
 
 (yas/advise-indent-function 'noweb-indent-line)
-#+end_src
+#+END_SRC
 ** Flyspell
 Flyspell provides nice inline spelling correction. Unfortunately, it
 makes Emacs very unresponsive for typing which turns out to be mainly
 what I want to use Emacs for.
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
       ;; flyspell-mode does spell-checking on the fly as you type
     (setq ispell-program-name "aspell" ; use aspell instead of ispell
           ispell-extra-args '("--sug-mode=ultra"))
@@ -762,11 +762,11 @@ what I want to use Emacs for.
 
     ;; (add-hook 'message-mode-hook 'prelude-turn-on-flyspell)
     ;; (add-hook 'text-mode-hook 'prelude-turn-on-flyspell)
-   #+end_src
+   #+END_SRC
 ** Expand/complete
 This is a very naive completion scheme that works pretty well 80% of
 the time.
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
   ;; hippie expand is dabbrev expand on steroids
   (setq hippie-expand-try-functions-list '(try-expand-dabbrev
                                            try-expand-dabbrev-all-buffers
@@ -778,12 +778,12 @@ the time.
                                            try-expand-line
                                            try-complete-lisp-symbol-partially
                                            try-complete-lisp-symbol))
-   #+end_src
+   #+END_SRC
 * Buffers and Files
 ** ido mode shortcut config: magic file opening and such
 This provides a really nice fuzzy matching/search for opening files
 and switching buffers.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (require 'ido)
 (ido-mode t)
 (setq ido-auto-merge-work-directories-length nil
@@ -800,23 +800,23 @@ and switching buffers.
       ido-use-virtual-buffers t)
 ;; auto-completion in minibuffer
 (icomplete-mode +1)
-#+end_src
+#+END_SRC
 ** Reverting buffer when underlying file changes on disk
 This is generally useful especially if you work with git repos and are
 changing branches and such.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (global-auto-revert-mode t)
-#+end_src
+#+END_SRC
 ** dired customization
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; dired - reuse current buffer by pressing 'a'
 (put 'dired-find-alternate-file 'disabled nil)
-#+end_src
+#+END_SRC
 ** bookmarks: I keep thinking I will use them and never do
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq bookmark-default-file (concat user-emacs-directory "bookmarks")
       bookmark-save-flag 1)
-#+end_src
+#+END_SRC
 ** Remote editing with tramp
 #+BEGIN_SRC emacs-lisp
 (require 'tramp)
@@ -828,7 +828,7 @@ changing branches and such.
 ** Backup and autosave files get out of my way, please.
 By default, emacs writes a backup file next to the file being editing
 with a trailing =~= turd.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; store all autosave files in the tmp dir
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
@@ -840,27 +840,27 @@ with a trailing =~= turd.
       kept-new-versions 24
       kept-old-versions 12
       version-control t)
-#+end_src
+#+END_SRC
 
 ** Buffer naming, place saving, recent files, and minibuffer details
 *** Generate unique buffer names if you open many files with same basename
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward)
 (setq uniquify-separator "/")
 (setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
 (setq uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
-#+end_src
+#+END_SRC
 *** Remember my place in files across sessions
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; saveplace remembers your location in a file when saving files
 (setq save-place-file (concat user-emacs-directory "saveplace"))
 ;; activate it for all buffers
 (setq-default save-place t)
 (require 'saveplace)
-#+end_src
+#+END_SRC
 *** Remember some history
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; savehist keeps track of some history
 (setq savehist-additional-variables
       ;; search entries
@@ -870,55 +870,55 @@ with a trailing =~= turd.
       ;; keep the home clean
       savehist-file (concat user-emacs-directory "savehist"))
 (savehist-mode t)
-#+end_src
+#+END_SRC
 *** Remember recent files
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; save recent files
 (setq recentf-save-file (concat user-emacs-directory "recentf")
       recentf-max-saved-items 200
       recentf-max-menu-items 15)
 (recentf-mode t)
-#+end_src
+#+END_SRC
 * UI
 ** tool bars, menu bars, and pop ups
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (dolist (mode '(menu-bar-mode tool-bar-mode scroll-bar-mode))
   (when (fboundp mode) (funcall mode -1)))
-#+end_src
+#+END_SRC
 ** cursor and startup screen
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (blink-cursor-mode -1)
 ;; disable startup screen
 (setq inhibit-startup-screen t)
-#+end_src
+#+END_SRC
 ** Asking questions
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq use-dialog-box nil)
-#+end_src
+#+END_SRC
 ** scrolling
 Here are some tweaks for how scrolling behaves. Adjusted values set in
 emacs-prelude which sets =scroll-conservatively= to 10000. I think I
 like the default better where you get recentering in more cases.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq scroll-margin 0
       scroll-conservatively 0
       scroll-preserve-screen-position 1)
-#+end_src
+#+END_SRC
 ** Mode line defaults
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (line-number-mode t)
 (column-number-mode t)
 (size-indication-mode t)
-#+end_src
+#+END_SRC
 ** FIXME: Color theme selection, line and paren highlighting
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (show-paren-mode t)
   (setq show-paren-style 'parenthesis)
   (global-hl-line-mode -1)
-#+end_src
+#+END_SRC
 * Add-on Packages
-I've been using [[https://github.com/dimitri/el-get][el-git]] to manage emacs packages. You can use it to
+I've been using [[https://github.com/dimitri/el-get][el-get]] to manage emacs packages. You can use it to
 install ELPA packages, things from git, svn, or tarball, as well as
 items posted on the EmacsWiki.
 ** Install el-get
@@ -954,7 +954,7 @@ function to set variables and hooks.
                           (load-theme 'solarized-dark t))))
 #+END_SRC
 *** ess
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
 (sf/add-pkg (:name ess :after (progn (after-ess))))
 
 (defun after-ess ()
@@ -987,12 +987,12 @@ function to set variables and hooks.
                             (ess-nuke-trailing-whitespace)))
                 (setq fill-column 72)))
     (setq ess-nuke-trailing-whitespace-p 'ask))
-    #+end_src
+    #+END_SRC
 *** confluence
 This is only useful for conflu <4 since after that you can only edit
 using rich text in-browser BS. But for the versions that it works
 for, it makes editing a conflu wiki almost tolerable.
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (sf/add-pkg
  (:name confluence-el
         :after (progn (after-confluence))))
@@ -1050,9 +1050,9 @@ for, it makes editing a conflu wiki almost tolerable.
                       (if (buffer-live-p tmp-buf)
                           (with-current-buffer tmp-buf
                             (longlines-restore)))))))))
-    #+end_src
+    #+END_SRC
 *** erlang
-    #+begin_src emacs-lisp
+    #+BEGIN_SRC emacs-lisp
 (sf/add-pkg (:name erlang
                    :type github
                    :pkgname "erlang/otp"
@@ -1086,7 +1086,7 @@ for, it makes editing a conflu wiki almost tolerable.
 
 (defun after-lfe ()
   (require 'lfe-start))
-    #+end_src
+    #+END_SRC
 *** magit and magithub
 #+BEGIN_SRC emacs-lisp
 (sf/add-pkg (:name magit :after (progn (after-magit))))
@@ -1142,94 +1142,93 @@ long lines of code.
 #+END_SRC
 *** org-mode
 #+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name org-plus-contrib
-                   :type elpa
+(sf/add-pkg (:name org-mode
                    :after (progn (after-org-mode))))
 
 (defun after-org-mode ()
-    (require 'org)
-    (require 'org-velocity)
-    (global-set-key (kbd "C-c 0") 'org-velocity-read)
-    (define-key global-map "\C-c1" 'org-capture)
-    (define-key global-map "\C-cl" 'org-store-link)
-    (define-key global-map "\C-ca" 'org-agenda)
-    (global-set-key "\C-cb" 'org-iswitchb)
-
-    (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-
-    (setq
-     org-directory "~/Notebook/org"
-     org-mobile-inbox-for-pull "~/Notebook/org/from-mobile.org"
-     org-mobile-directory "~/Dropbox/MobileOrg"
-     org-agenda-files (quote ("~/Notebook/org/seth.org"))
-     org-enforce-todo-dependencies t
-     org-velocity-bucket "~/Notebook/org/solutions.org"
-     org-default-notes-file (concat org-directory "/notes.org")
-     org-log-done t
-     ;; this prevents org-mode from adding leading whitespace to code
-     ;; blocks after editing
-     org-src-preserve-indentation t)
-
-    ;; capture setup
-    (setq org-capture-templates
-          '(("t" "Todo" entry (file+headline (concat org-directory "/seth.org") "Next Action")
-             "* TODO %?\n  %i\n  %a")
-            ("s" "Solution" entry (file+headline (concat org-directory "/solutions.org"))
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("j" "Journal" entry (file+datetree (concat org-directory "/journal.org"))
-             "* %?\nEntered on %U\n  %i\n  %a")))
-
-    ;; where to refile
-    (setq org-refile-targets
-          '((nil . (:level . 1))
-            ("solutions.org" . (:level . 1))
-            ("seth.org" . (:level . 1))
-            ("seth-sometime.org" . (:level . 1))
-            ("seth-ref.org" . (:level . 1))))
-
-    (setq org-refile-use-outline-path 'file)
-
-    ;; ;; http://orgmode.org/worg/org-faq.php#YASnippet
-    ;; (defun yas/org-very-safe-expand ()
-    ;;   (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
-
-    ;; (add-hook 'org-mode-hook
-    ;;           (lambda ()
-    ;;             ;; yasnippet (using the new org-cycle hooks)
-    ;;             (make-variable-buffer-local 'yas/trigger-key)
-    ;;             (setq yas/trigger-key [tab])
-    ;;             (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
-    ;;             (define-key yas/keymap [tab] 'yas/next-field)))
-
-    ;; this seems to work as well and is more general. It was slow on
-    ;; first load, then pretty snappy. Worked for mail and chrome
-    (when (eq system-type 'darwin)
-      (require 'org-mac-link-grabber)
-      (add-hook 'org-mode-hook
-                (lambda ()
-                  (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link))))
-
-    ;; org-babel setup
-    ;; (require 'org-babel-init)
-    ;; (require 'org-babel-R)
-    ;; (require 'org-babel-ruby)
-    ;; (org-babel-load-library-of-babel)
-    )
+  (require 'org)
+  (require 'org-velocity)
+  (global-set-key (kbd "C-c 0") 'org-velocity-read)
+  (define-key global-map "\C-c1" 'org-capture)
+  (define-key global-map "\C-cl" 'org-store-link)
+  (define-key global-map "\C-ca" 'org-agenda)
+  (global-set-key "\C-cb" 'org-iswitchb)
+  
+  (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+  
+  (setq
+   org-directory "~/Notebook/org"
+   org-mobile-inbox-for-pull "~/Notebook/org/from-mobile.org"
+   org-mobile-directory "~/Dropbox/MobileOrg"
+   org-agenda-files (quote ("~/Notebook/org/seth.org"))
+   org-enforce-todo-dependencies t
+   org-velocity-bucket "~/Notebook/org/solutions.org"
+   org-default-notes-file (concat org-directory "/notes.org")
+   org-log-done t
+   ;; this prevents org-mode from adding leading whitespace to code
+   ;; blocks after editing
+   org-src-preserve-indentation t)
+  
+  ;; capture setup
+  (setq org-capture-templates
+        '(("t" "Todo" entry (file+headline (concat org-directory "/seth.org") "Next Action")
+           "* TODO %?\n  %i\n  %a")
+          ("s" "Solution" entry (file+headline (concat org-directory "/solutions.org"))
+           "* %?\nEntered on %U\n  %i\n  %a")
+          ("j" "Journal" entry (file+datetree (concat org-directory "/journal.org"))
+           "* %?\nEntered on %U\n  %i\n  %a")))
+  
+  ;; where to refile
+  (setq org-refile-targets
+        '((nil . (:level . 1))
+          ("solutions.org" . (:level . 1))
+          ("seth.org" . (:level . 1))
+          ("seth-sometime.org" . (:level . 1))
+          ("seth-ref.org" . (:level . 1))))
+  
+  (setq org-refile-use-outline-path 'file)
+  
+  ;; ;; http://orgmode.org/worg/org-faq.php#YASnippet
+  ;; (defun yas/org-very-safe-expand ()
+  ;;   (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
+  
+  ;; (add-hook 'org-mode-hook
+  ;;           (lambda ()
+  ;;             ;; yasnippet (using the new org-cycle hooks)
+  ;;             (make-variable-buffer-local 'yas/trigger-key)
+  ;;             (setq yas/trigger-key [tab])
+  ;;             (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
+  ;;             (define-key yas/keymap [tab] 'yas/next-field)))
+  
+  ;; this seems to work as well and is more general. It was slow on
+  ;; first load, then pretty snappy. Worked for mail and chrome
+  (when (eq system-type 'darwin)
+    (require 'org-mac-link-grabber)
+    (add-hook 'org-mode-hook
+              (lambda ()
+                (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link))))
+  
+  ;; org-babel setup
+  ;; (require 'org-babel-init)
+  ;; (require 'org-babel-R)
+  ;; (require 'org-babel-ruby)
+  ;; (org-babel-load-library-of-babel)
+  )
 #+END_SRC
 
 *** package (last)
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (sf/add-pkg (:name package
                    :after (progn
                             (add-to-list
                              'package-archives
                              '("org" . "http://orgmode.org/elpa/") t))))
-#+end_src
+#+END_SRC
 ** Tell el-get to install All The Things
    So might be worth cleaning this up by defining el-get-sources
    incrementally using =add-to-list= so that each item can be in its own
    section for nice folding and isolation.
-   #+begin_src emacs-lisp
+   #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
 
 (unless (require 'el-get nil t)
@@ -1245,16 +1244,16 @@ long lines of code.
  my-packages (mapcar 'el-get-source-name el-get-sources))
 (el-get 'sync my-packages)
 
-   #+end_src
+   #+END_SRC
 * Random misc add ons and such
 ** wrangler
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; wrangler Erlang code refactor tool
 (add-to-list 'load-path "/usr/local/share/wrangler/elisp")
 (require 'wrangler)
-#+end_src
+#+END_SRC
 ** Activity logger that I don't use
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (defvar activity-log-file-prefix "~/ACTILOG"
   "prefix for file containing activity log")
 
@@ -1269,18 +1268,18 @@ long lines of code.
         (save-buffer)))
 
 (global-set-key [f12] 'actilog)
-#+end_src
+#+END_SRC
 * Stuff I hope I never have to use
   :PROPERTIES:
   :ta:       no
   :END:
 ** cucumber mode
-#+begin_src emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (require 'feature-mode)
 (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
-#+end_src
+#+END_SRC
 * Junk Drawer
-#+begin_src emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (require 'rspec-mode)
 
 ;; lua!
@@ -1295,12 +1294,12 @@ long lines of code.
       (let ((s (if (symbolp str) (symbol-name str) str)))
         (replace-regexp-in-string
          "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
-#+end_src
+#+END_SRC
 * Peepopen
 This is a great little utility if you are adicted to TextMate style
 file opening. It works pretty well, but I can't seem to make a habit
 of using it over the ido stuff.
-#+begin_src emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 ;; textmate and peep open
 ;(require 'textmate)
 ;(require 'peepopen)
@@ -1308,11 +1307,11 @@ of using it over the ido stuff.
 ;(textmate-mode)
 ;; (textmate-mode)
 ;; (textmate-mode)
-#+end_src
+#+END_SRC
 
 * Prelude programming stuff
 FIXME: organize this stuff
-  #+begin_src emacs-lisp
+  #+BEGIN_SRC emacs-lisp
 (defun prelude-local-comment-auto-fill ()
   (set (make-local-variable 'comment-auto-fill-only-comments) t)
   (auto-fill-mode t))
@@ -1340,7 +1339,7 @@ FIXME: organize this stuff
 ;; from a common mode named prog-mode
 (add-hook 'prog-mode-hook 'prelude-prog-mode-hook)
 
-  #+end_src
+  #+END_SRC
 * Problems
 ** auctex
    #+begin_example
