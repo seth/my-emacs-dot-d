@@ -6,6 +6,7 @@
 ;; a file `init.org` would generate `init.el`, obliterating this file in the
 ;; process. So your config org file should not be named "init.org".
 
+(require 'ob-tangle)
 (org-babel-load-file
  (expand-file-name "emacs-init.org"
                    user-emacs-directory))
