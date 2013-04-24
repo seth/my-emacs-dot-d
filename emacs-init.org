@@ -961,6 +961,19 @@ function to set variables and hooks.
                                        default-directory)
                           (load-theme 'solarized-dark t))))
 #+END_SRC
+*** Eric Merritt's [[https://github.com/ericbmerritt/projmake-mode][projmake]]
+#+BEGIN_SRC emacs-lisp
+(sf/add-pkg
+ (:name projmake-mode
+        :type git
+        :url "git://github.com/ericbmerritt/projmake-mode.git"))
+
+(defun projmake-enable ()
+  (projmake-mode)
+  (projmake-search-load-project))
+
+#+END_SRC
+
 *** ess
     #+BEGIN_SRC emacs-lisp
 (sf/add-pkg (:name ess :after (progn (after-ess))))
@@ -1085,8 +1098,9 @@ for, it makes editing a conflu wiki almost tolerable.
 ;; erlang
 
 (defun my-erlang-mode-hook ()
-  (require 'erlang-flymake)
-  (erlang-flymake-only-on-save))
+  ;;(require 'erlang-flymake)
+  ;;(erlang-flymake-only-on-save)
+  (projmake-enable))
 
 (defun after-erlang ()
   (require 'erlang-start)
