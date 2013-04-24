@@ -900,6 +900,10 @@ with a trailing =~= turd.
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq use-dialog-box nil)
 #+END_SRC
+** Making noise (or not)
+#+BEGIN_SRC  emacs-lisp
+(setq ring-bell-function (lambda () (message "*beep*")))
+#+END_SRC
 ** scrolling
 Here are some tweaks for how scrolling behaves. Adjusted values set in
 emacs-prelude which sets =scroll-conservatively= to 10000. I think I
