@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-10-25 12:43 PDT>
+# Time-stamp: <2013-04-24 11:48 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -1269,11 +1269,18 @@ long lines of code.
    #+END_SRC
 * Random misc add ons and such
 ** wrangler
-#+BEGIN_SRC emacs-lisp
+Having some trouble with wrangler and not in the habit of using it yet
+so disabling. The problem is tied to shadowing of dired functionality
+and breaking incremental search in dired mode due to a function not
+being able to be found via autoload.
+
+#+BEGIN_SRC emacs-lisp :tangle no
 ;; wrangler Erlang code refactor tool
-(add-to-list 'load-path "/usr/local/share/wrangler/elisp")
+(add-to-list 'load-path
+             "/usr/local/lib/erlang/lib/wrangler-1.0/elisp")
 (require 'wrangler)
 #+END_SRC
+
 ** Activity logger that I don't use
 #+BEGIN_SRC emacs-lisp
 (defvar activity-log-file-prefix "~/ACTILOG"
