@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2012-10-25 12:43 PDT>
+# Time-stamp: <2013-05-01 09:41 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -1281,8 +1281,8 @@ long lines of code.
 ** wrangler
 #+BEGIN_SRC emacs-lisp
 ;; wrangler Erlang code refactor tool
-(add-to-list 'load-path "/usr/local/share/wrangler/elisp")
-(require 'wrangler)
+;; (add-to-list 'load-path "/usr/local/share/wrangler/elisp")
+;; (require 'wrangler)
 #+END_SRC
 ** Activity logger that I don't use
 #+BEGIN_SRC emacs-lisp
