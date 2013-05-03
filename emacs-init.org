@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2013-05-01 09:41 PDT>
+# Time-stamp: <2013-05-02 22:38 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -1174,9 +1174,8 @@ long lines of code.
   ;;                   :after (progn (after-org-mode))))
   
   (defun make-me-an-org-mode ()
-    (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/lisp")
-    (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/contrib/lisp")
-    (require 'org)
+    ;;(add-to-list 'load-path "~/.emacs.d/vendor/org-mode/lisp")
+    (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/contrib/lisp" t)
     (require 'org-velocity)
     (global-set-key (kbd "C-c 0") 'org-velocity-read)
     (define-key global-map "\C-c1" 'org-capture)
@@ -1232,11 +1231,11 @@ long lines of code.
     
     ;; this seems to work as well and is more general. It was slow on
     ;; first load, then pretty snappy. Worked for mail and chrome
-    (when (eq system-type 'darwin)
-      (require 'org-mac-link-grabber)
-      (add-hook 'org-mode-hook
-                (lambda ()
-                  (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link))))
+    ;; (when (eq system-type 'darwin)
+    ;;   (require 'org-mac-link-grabber)
+    ;;   (add-hook 'org-mode-hook
+    ;;             (lambda ()
+    ;;               (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link))))
     
     ;; org-babel setup
     ;; (require 'org-babel-init)
