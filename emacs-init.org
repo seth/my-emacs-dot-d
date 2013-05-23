@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2013-05-02 22:38 PDT>
+# Time-stamp: <2013-05-23 09:11 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -966,7 +966,12 @@ function to set variables and hooks.
 (sf/add-pkg
  (:name projmake-mode
         :type git
-        :url "git://github.com/ericbmerritt/projmake-mode.git"))
+        :url "git://github.com/ericbmerritt/projmake-mode.git"
+        :after (progn (after-projmake))))
+
+(defun after-projmake ()
+  (setq projmake-project-descs '(("Rebar" "rebar.config" "nice -n5 rebar skip_deps=true compile")
+                                )))
 
 (defun projmake-enable ()
   (projmake-mode)
