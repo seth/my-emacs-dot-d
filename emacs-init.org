@@ -1086,20 +1086,6 @@ for, it makes editing a conflu wiki almost tolerable.
                    :shallow t
                    :after (progn (after-erlang))))
 
-(defun my-fic-ext-mode-hook ()
-  (fic-ext-mode t))
-
-(defun after-fic-ext-mode ()
-  (add-hook-to-modes code-modes 'my-fic-ext-mode-hook))
-
-;; flymake - builds your codes when you save
-
-(defun my-flymake-mode-hook ()
-  (local-set-key (kbd "C-c e") 'flymake-goto-next-error))
-
-(add-hook 'flymake-mode-hook 'my-flymake-mode-hook)
-;;(add-hook 'find-file-hook 'flymake-find-file-hook)
-
 ;; erlang
 
 (defun my-erlang-mode-hook ()
@@ -1151,10 +1137,6 @@ for, it makes editing a conflu wiki almost tolerable.
 #+END_SRC
 *** auto-complete
     This [[http://cx4a.org/software/auto-complete/manual.html][auto-complete]] mode looks worth a try at some point
-*** Show TODO, FIXME, and BUG in special face in comments and strings
-#+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name fic-ext-mode :after (progn (after-fic-ext-mode))))
-#+END_SRC
 *** fill column inidicator (fci-mode)
 This mode, enabled using =M-x fci-mode= puts a vertical line
 indicating the fill column. Can be useful to keep you honest about
