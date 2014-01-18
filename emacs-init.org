@@ -1355,6 +1355,123 @@ of using it over the ido stuff.
 ;; (textmate-mode)
 #+END_SRC
 
+* mu4e
+#+BEGIN_SRC emacs-lisp
+;;----------------------------------------------------------
+;; ---- BEGIN Email client ----
+;;----------------------------------------------------------
+
+;; mu index --rebuild --maildir=~/Mail
+
+;; something about ourselves
+(setq
+ user-mail-address "seth@getchef.com"
+ user-full-name  "Seth Falcon")
+
+;; sending mail -- replace USERNAME with your gmail username
+;; also, make sure the gnutls command line utils are installed
+;; package 'gnutls-bin' in Debian/Ubuntu
+
+(setq 
+    message-send-mail-function 'smtpmail-send-it
+    starttls-use-gnutls t
+    smtpmail-debug-info t
+    smtpmail-debug-verb t
+    smtpmail-stream-type 'ssl
+    starttls-extra-arguments '("--x509cafile" "/usr/local/etc/ssl/cacert.pem")
+    smtpmail-default-smtp-server "smtp.gmail.com"
+    smtpmail-smtp-user "seth@opscode.com"
+    smtpmail-smtp-server "smtp.gmail.com"
+    smtpmail-smtp-service 465)
+(require 'smtpmail)
+
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+(require 'mu4e)
+
+;; default
+(setq mu4e-maildir "~/Mail")
+(setq mu4e-drafts-folder "/opscode/[Gmail].Drafts")
+(setq mu4e-sent-folder   "/opscode/[Gmail].Sent Mail")
+(setq mu4e-trash-folder  "/opscode/[Gmail].Trash")
+(setq mu4e-refile-folder  "/opscode/Zero")
+(setq mu4e-view-show-addresses t)
+;; don't save message to Sent Messages, Gmail/IMAP takes care of this
+(setq mu4e-sent-messages-behavior 'delete)
+
+;; multi-account config.
+(defvar my-mu4e-account-alist
+  '(("opscode"
+     (mu4e-drafts-folder "/opscode/[Gmail].Drafts")
+     (mu4e-sent-folder   "/opscode/[Gmail].Sent Mail")
+     (mu4e-trash-folder  "/opscode/[Gmail].Trash")
+     (mu4e-refile-folder  "/opscode/Zero")
+
+     (user-mail-address "seth@getchef.com")
+     (message-signature-file "~/Mail/getchef.sig")
+     (smtpmail-smtp-server "opscode-gmail")
+     (smtpmail-smtp-user "seth@opscode.com"))
+    ("userprimary"
+     (mu4e-drafts-folder "/userprimary/[Gmail].Drafts")
+     (mu4e-sent-folder   "/userprimary/[Gmail].Sent Mail")
+     (mu4e-trash-folder  "/userprimary/[Gmail].Trash")
+     (mu4e-refile-folder  "/userprimary/Zero")
+
+     (user-mail-address "seth@userprimary.net")
+     (message-signature-file "~/Mail/userprimary.sig")
+     (smtpmail-smtp-server "userprimary-gmail")
+     (smtpmail-smtp-user "seth@userprimary.net"))))
+
+(defun my-mu4e-set-account ()
+       "Set the account for composing a message."
+       (let* ((account
+               (if mu4e-compose-parent-message
+                   (let ((maildir (mu4e-message-field mu4e-compose-parent-message :maildir)))
+                     (string-match "/\\(.*?\\)/" maildir)
+                     (match-string 1 maildir))
+                 (completing-read (format "Compose with account: (%s) "
+                                          (mapconcat #'(lambda (var) (car var)) my-mu4e-account-alist "/"))
+                                  (mapcar #'(lambda (var) (car var)) my-mu4e-account-alist)
+                                  nil t nil nil (caar my-mu4e-account-alist))))
+              (account-vars (cdr (assoc account my-mu4e-account-alist))))
+         (if account-vars
+             (mapc #'(lambda (var)
+                       (set (car var) (cadr var)))
+                   account-vars)
+           (error "No email account found"))))
+
+(add-hook 'mu4e-compose-pre-hook 'my-mu4e-set-account)
+
+
+;; setup some handy shortcuts
+;; you can quickly switch to your Inbox -- press ``ji''
+;; then, when you want archive some messages, move them to
+;; the 'All Mail' folder by pressing ``ma''.
+
+(setq mu4e-maildir-shortcuts
+      '( ("/opscode/INBOX"               . ?c)
+         ("/userprimary/INBOX"           . ?u)
+         ))
+
+(add-to-list 'mu4e-bookmarks
+             '("maildir:/Nagios date:today..now flag:unread AND NOT flag:trashed" "Nagios Today" ?n))
+
+(add-to-list 'mu4e-bookmarks
+             '("(to:seth@opscode.com OR to:seth@getchef.com) maildir:/INBOX flag:unread AND NOT flag:trashed" "Unread for me" ?m))
+
+
+;; allow for updating mail using 'U' in the main view:
+(setq mu4e-get-mail-command "true")
+
+;; don't keep message buffers around
+(setq message-kill-buffer-on-exit t)
+
+ (setq mu4e-html2text-command
+ "textutil -stdin -format html -convert txt -stdout")
+
+;;----------------------------------------------------------
+;; ---- END Email client ----
+;;----------------------------------------------------------
+#+END_SRC
 * Prelude programming stuff
 FIXME: organize this stuff
   #+BEGIN_SRC emacs-lisp
