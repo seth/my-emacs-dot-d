@@ -1089,9 +1089,12 @@ for, it makes editing a conflu wiki almost tolerable.
 ;; erlang
 
 (defun my-erlang-mode-hook ()
-  ;;(require 'erlang-flymake)
-  ;;(erlang-flymake-only-on-save)
-  (projmake-enable))
+  (if (buffer-file-name)
+      ;; to projmake breaks org-mode code block editing. need to
+      ;; investigate
+      (projmake-enable)
+    (message "skipping projmake for ephemeral buffer"))
+  )
 
 (defun after-erlang ()
   (require 'erlang-start)
