@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2013-05-23 09:11 PDT>
+# Time-stamp: <2014-01-17 22:13 PST>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -1174,7 +1174,7 @@ long lines of code.
   ;;                   :after (progn (after-org-mode))))
   
   (defun make-me-an-org-mode ()
-    ;;(add-to-list 'load-path "~/.emacs.d/vendor/org-mode/lisp")
+    (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/lisp")
     (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/contrib/lisp" t)
     (require 'org-velocity)
     (global-set-key (kbd "C-c 0") 'org-velocity-read)
