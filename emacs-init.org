@@ -1114,6 +1114,16 @@ for, it makes editing a conflu wiki almost tolerable.
 (defun after-lfe ()
   (require 'lfe-start))
     #+END_SRC
+*** ocaml via tuareg-mode
+#+BEGIN_SRC emacs-lisp
+(sf/add-pkg (:name tuareg-mode))
+
+#+END_SRC
+*** haskell
+#+BEGIN_SRC emacs-lisp
+(custom-set-variables
+     '(haskell-mode-hook '(turn-on-haskell-indentation)))
+#+END_SRC
 *** magit and magithub
 #+BEGIN_SRC emacs-lisp
 (sf/add-pkg (:name magit :after (progn (after-magit))))
