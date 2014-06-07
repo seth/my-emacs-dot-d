@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2014-01-17 22:13 PST>
+# Time-stamp: <2014-05-09 22:23 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -569,6 +569,23 @@ this.
 #+BEGIN_SRC emacs-lisp
 (server-start)
 #+END_SRC
+
+** Copy Paste for Console
+: brew install reattach-to-user-namespace --wrap-pbcopy-and-pbpaste
+And then added to ~/.tmux.conf...
+: set-option -g default-command "reattach-to-user-namespace -l bash"
+#+BEGIN_SRC emacs-lisp
+(setq interprogram-cut-function
+      (lambda (text &optional push)
+        (let* ((process-connection-type nil)
+               (pbproxy (start-process "pbcopy" "pbcopy" "/usr/bin/pbcopy")))
+          (process-send-string pbproxy text)
+          (process-send-eof pbproxy))))
+ 
+(setq interprogram-paste-function
+      (lambda ()
+        (shell-command-to-string "pbpaste")))
+#+END_SRC
 * PROGRAMMING ROAR
 ** imenu symbol lookup
 This bit of magic binds =M-i= to a function that knows how to identify
@@ -919,6 +936,14 @@ like the default better where you get recentering in more cases.
 (column-number-mode t)
 (size-indication-mode t)
 #+END_SRC
+** Font
+#+BEGIN_SRC emacs-lisp
+(set-face-attribute 'default nil
+                    :family "Inconsolata"
+                    :height 225
+                    :weight 'normal)
+
+#+END_SRC
 ** FIXME: Color theme selection, line and paren highlighting
 #+BEGIN_SRC emacs-lisp
   (show-paren-mode t)
@@ -947,6 +972,12 @@ list.
     (add-to-list 'el-get-sources pkg))
   (defmacro sf/add-pkg (pkg)
     `(sf/add-pkg0 (quote ,pkg)))
+#+END_SRC
+** Configure MELPA
+#+BEGIN_SRC emacs-lisp
+(require 'package)
+(add-to-list 'package-archives
+  '("melpa" . "http://melpa.milkbox.net/packages/") t)
 #+END_SRC
 ** List desired add-on packages and their configuration
 Each package can have configurtiation defined in an =after-PKG=
@@ -1114,7 +1145,8 @@ for, it makes editing a conflu wiki almost tolerable.
      '(haskell-mode-hook '(turn-on-haskell-indentation)))
 #+END_SRC
 *** magit and magithub
-#+BEGIN_SRC emacs-lisp
+With update to emacs nightly, magit seems to have broken :(
+#+BEGIN_SRC emacs-lisp :tangle no
 (sf/add-pkg (:name magit :after (progn (after-magit))))
 (sf/add-pkg (:name magithub))
 
@@ -1249,11 +1281,11 @@ long lines of code.
 
 *** package (last)
 #+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name package
-                   :after (progn
-                            (add-to-list
-                             'package-archives
-                             '("org" . "http://orgmode.org/elpa/") t))))
+;; (sf/add-pkg (:name package
+;;                    :after (progn
+;;                             (add-to-list
+;;                              'package-archives
+;;                              '("org" . "http://orgmode.org/elpa/") t))))
 #+END_SRC
 ** Tell el-get to install All The Things
    So might be worth cleaning this up by defining el-get-sources
@@ -1392,7 +1424,8 @@ of using it over the ido stuff.
      (mu4e-refile-folder  "/opscode/Zero")
 
      (user-mail-address "seth@getchef.com")
-     (message-signature-file "~/Mail/getchef.sig")
+     (mu4e-compose-signature
+      "Seth Falcon | Engineering Lead - Continuous Delivery | @sfalcon\n       CHEF | http://www.getchef.com/ ")
      (smtpmail-smtp-server "opscode-gmail")
      (smtpmail-smtp-user "seth@opscode.com"))
     ("userprimary"
@@ -1402,12 +1435,13 @@ of using it over the ido stuff.
      (mu4e-refile-folder  "/userprimary/Zero")
 
      (user-mail-address "seth@userprimary.net")
-     (message-signature-file "~/Mail/userprimary.sig")
+     (mu4e-compose-signature "Seth Falcon | @sfalcon | http://userprimary.net/")
      (smtpmail-smtp-server "userprimary-gmail")
      (smtpmail-smtp-user "seth@userprimary.net"))))
 
 (defun my-mu4e-set-account ()
        "Set the account for composing a message."
+       (interactive)
        (let* ((account
                (if mu4e-compose-parent-message
                    (let ((maildir (mu4e-message-field mu4e-compose-parent-message :maildir)))
