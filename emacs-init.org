@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2014-06-06 23:56 PDT>
+# Time-stamp: <2014-06-07 10:40 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -929,7 +929,21 @@ like the default better where you get recentering in more cases.
   (global-hl-line-mode -1)
 #+END_SRC
 * Add-on Packages
-** Configure MELPA
+Add on packages are installed via package.el from
+the [[http://melpa.milkbox.net/][MELPA]] archive using John Wiegley's [[https://github.com/jwiegley/use-package][use-package]] which provides a
+nice way of loading/installing/configuring packages.
+
+In this latest emacs init.el rewrite, I also came across [[http://cask.readthedocs.org/en/latest/index.html][Cask]] which is
+a bundler-esque solution for emacs packages. Docs look pretty good,
+but I liked the config integration of use-package which feels like a
+better fit for init.el management.
+** Configure package archives
+Use MELPA and the org archives. Put them first to avoid installed gnu
+packages if there are newer ones from melpa available.
+
+If we have a net connection, we'll refresh the package list on
+startup.
+
 #+BEGIN_SRC emacs-lisp
   (require 'package)
   (add-to-list 'package-archives
@@ -937,10 +951,6 @@ like the default better where you get recentering in more cases.
 
   (add-to-list 'package-archives
                '("org" . "http://orgmode.org/elpa/"))
-
-  (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
-
-  (require 'use-package)
 
   (setq my-onlinep nil)
   (unless
@@ -957,17 +967,21 @@ like the default better where you get recentering in more cases.
     (package-refresh-contents)
     (package-initialize))
 #+END_SRC
-
+** Setup use-package
 #+BEGIN_SRC emacs-lisp
-  (setq my-pkg-list ())
-  (defun sf/add-pkg0 (pkg)
-    (add-to-list 'my-pkg-list pkg))
-    (defmacro sf/add-pkg (pkg)
-      `(sf/add-pkg0 (quote ,pkg)))
+  (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
+  (require 'use-package)
 #+END_SRC
-** List desired add-on packages and their configuration
-Each package can have configurtiation defined in an =after-PKG=
-function to set variables and hooks.
+** Packages and their configuration
+To force a package to get installed if it isn't already available, add
+=:ensure=. To provide configuration you can use either =:init= or
+=:config=. The =:init= form runs even when package loading is
+deferred. The =:config= form *only* runs after the module has been
+loaded (so might be more appropriate for calling functions defined in
+the module, e.g.)
+
+There are helpers to =:bind= keys, setup =:mode= hooks, and modify
+=:load-path=.
 *** solarized theme
 #+BEGIN_SRC emacs-lisp
     (use-package color-theme-sanityinc-solarized
@@ -977,6 +991,16 @@ function to set variables and hooks.
 
 #+END_SRC
 *** Eric Merritt's [[https://github.com/ericbmerritt/projmake-mode][projmake]]
+To add projmake support to a mode you want to add something like this
+to your mode hook:
+#+BEGIN_SRC :tangle no
+(defun my-mode-hook ()
+    (projmake-mode)
+    (projmake-search-load-project))
+
+(add-hook '<mode>-mode-hook 'my-mode-hook)
+#+END_SRC
+
 #+BEGIN_SRC emacs-lisp
   (use-package projmake-mode
     :ensure
@@ -985,38 +1009,30 @@ function to set variables and hooks.
           '(("Rebar" "rebar.config" "nice -n5 rebar skip_deps=true compile")))
     )
 
-  (defun after-projmake ()
-    (setq projmake-project-descs '(("Rebar" "rebar.config" "nice -n5 rebar skip_deps=true compile")
-                                  )))
-
   (defun projmake-enable ()
-    (projmake-mode)
-    (projmake-search-load-project))
+    )
 
 #+END_SRC
-
 *** erlang
-    #+BEGIN_SRC emacs-lisp
-(use-package erlang
- :ensure)
+#+BEGIN_SRC emacs-lisp
+  (use-package erlang
+    :config
+    (add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
+   :ensure)
 
-;; erlang
+  ;; do we need (require 'erlang-start) ?
+  (defun my-erlang-mode-hook ()
+    (if (buffer-file-name)
+        ;; projmake breaks org-mode code block editing. need to
+        ;; investigate
+        (progn
+          (projmake-mode)
+          (projmake-search-load-project)
+          (projmake-enable))
+      (message "skipping projmake for ephemeral buffer"))
+    )
 
-(defun my-erlang-mode-hook ()
-  (if (buffer-file-name)
-      ;; to projmake breaks org-mode code block editing. need to
-      ;; investigate
-      (projmake-enable)
-    (message "skipping projmake for ephemeral buffer"))
-  )
-
-(defun after-erlang ()
-  (require 'erlang-start)
-  (add-hook 'erlang-mode-hook 'my-erlang-mode-hook))
-
-(defun after-lfe ()
-  (require 'lfe-start))
-    #+END_SRC
+#+END_SRC
 *** ess
 #+BEGIN_SRC emacs-lisp
   (use-package ess
@@ -1069,13 +1085,12 @@ function to set variables and hooks.
   ;; edit-server-start
 
 #+END_SRC
-*** smex :tangle no
+*** smex
 #+BEGIN_SRC emacs-lisp
   (use-package smex
     :ensure
     :bind (("M-x" . smex)
            ("M-X" . execute-extended-command)))
-
 #+END_SRC
 *** auto-complete
     This [[http://cx4a.org/software/auto-complete/manual.html][auto-complete]] mode looks worth a try at some point
@@ -1091,9 +1106,7 @@ long lines of code.
 #+END_SRC
 *** Various edit modes that I don't yet customize
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package ruby-mode
- :ensure)
-(use-package pg)
+(use-package ruby-mode :ensure)
 (use-package nginx-mode :ensure)
 (use-package lua-mode :ensure)
 (use-package ag :ensure)
@@ -1105,10 +1118,18 @@ long lines of code.
 (use-package yaml-mode :ensure)
 #+END_SRC
 *** org-mode 
-#+BEGIN_SRC emacs-lisp :tangle no
+Since use-package detects the version of org that comes with Emacs, I
+ended up running an install from MELPA manually. I've also cloned the
+org git repo into the vendor dir to have access to the contribs.
+#+BEGIN_SRC emacs-lisp
   (use-package org
     :ensure
     :mode ("\\.org$" . org-mode)
+    :load-path "~/.emacs.d/vendor/org-mode/contrib/lisp"
+    :bind (("C-c 1" . org-capture)
+           ("C-c l" . org-store-link)
+           ("C-c a" . org-agenda)
+           ("C-c b" . org-iswitchb))
     :init
     (setq
      org-directory "~/Notebook/org"
@@ -1125,11 +1146,14 @@ long lines of code.
     
     ;; capture setup
     (setq org-capture-templates
-          '(("t" "Todo" entry (file+headline (concat org-directory "/seth.org") "Next Action")
+          '(("t" "Todo" entry
+             (file+headline (concat org-directory "/seth.org") "Next Action")
              "* TODO %?\n  %i\n  %a")
-            ("s" "Solution" entry (file+headline (concat org-directory "/solutions.org"))
+            ("s" "Solution" entry
+             (file+headline (concat org-directory "/solutions.org"))
              "* %?\nEntered on %U\n  %i\n  %a")
-            ("j" "Journal" entry (file+datetree (concat org-directory "/journal.org"))
+            ("j" "Journal" entry
+             (file+datetree (concat org-directory "/journal.org"))
              "* %?\nEntered on %U\n  %i\n  %a")))
     
     ;; where to refile
@@ -1142,19 +1166,11 @@ long lines of code.
     
     (setq org-refile-use-outline-path 'file)
     )
-  ;; note: installed via org package repo manually, since use-package
-  ;; sees the one that comes w/ emacs and does nothing.
 
-  ;; TODO FIXME: org-velocity
-    (defun make-me-an-org-mode ()
-      (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/lisp")
-      (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/contrib/lisp" t)
-      (require 'org-velocity)
-      (global-set-key (kbd "C-c 0") 'org-velocity-read)
-      (define-key global-map "\C-c1" 'org-capture)
-      (define-key global-map "\C-cl" 'org-store-link)
-      (define-key global-map "\C-ca" 'org-agenda)
-      (global-set-key "\C-cb" 'org-iswitchb))
+  (use-package org-velocity
+    :bind (("C-c 0" . org-velocity-read))
+    )
+
 #+END_SRC
 * Random misc add ons and such
 ** wrangler
