@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2014-06-06 23:47 PDT>
+# Time-stamp: <2014-06-06 23:56 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -973,7 +973,7 @@ function to set variables and hooks.
     (use-package color-theme-sanityinc-solarized
       :ensure
       :config
-      (load-theme 'sanityinc-solarized-dark))
+      (load-theme 'sanityinc-solarized-dark t))
 
 #+END_SRC
 *** Eric Merritt's [[https://github.com/ericbmerritt/projmake-mode][projmake]]
