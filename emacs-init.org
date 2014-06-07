@@ -7,7 +7,7 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2014-05-09 22:23 PDT>
+# Time-stamp: <2014-06-06 23:47 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -32,28 +32,6 @@
   #+BEGIN_SRC emacs-lisp
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
   #+END_SRC
-* Using emacs in iTerm2
-  To get a usable color theme in terminal mode (e.g. =emacsclient
-  -nw=) I installed the [[https://github.com/altercation/solarized][solarized color]] theme into iTerm2. I used the
-  [[http://ethanschoonover.com/solarized/files/solarized.zip][zip file]] and then followed the steps from the README for iTerm2:
-
-  #+begin_quote
-  Open iTerm 2, open Preferences, click on the "Profiles" (formerly
-  Addresses, formerly Bookmarks) icon in the preferences toolbar, then
-  select the "colors" tab. Click on the "load presets" and select
-  "import...". Select the Solaris Light or Dark theme file.
-
-  You have now loaded the Solarized color presets into iTerm 2, but
-  haven't yet applied them. To apply them, simply select an existing
-  profile from the profile list window on the left, or create a new
-  profile. Then select the Solarized Dark or Solarized Light preset
-  from the "Load Presets" drop down.
-  #+end_quote
-
-  This config installs a version of the solarized theme for Emacs via
-  el-get (see below). I've found that if you call load-theme in the
-  terminal you get it to work, but then cocoa Emacs looks funny (and
-  vice versa).
 * Defuns
 Helper functions to use either in an editing session or to help with
 configuration
@@ -586,7 +564,7 @@ And then added to ~/.tmux.conf...
       (lambda ()
         (shell-command-to-string "pbpaste")))
 #+END_SRC
-* PROGRAMMING ROAR
+* PROGRAMMING
 ** imenu symbol lookup
 This bit of magic binds =M-i= to a function that knows how to identify
 functions in the current buffer in many programming languages. Makes
@@ -951,171 +929,76 @@ like the default better where you get recentering in more cases.
   (global-hl-line-mode -1)
 #+END_SRC
 * Add-on Packages
-I've been using [[https://github.com/dimitri/el-get][el-get]] to manage emacs packages. You can use it to
-install ELPA packages, things from git, svn, or tarball, as well as
-items posted on the EmacsWiki.
-** Install el-get
-Add el-get to load-path and install if not already present.   
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-(unless (require 'el-get nil t) 
-  (url-retrieve
-   "https://raw.github.com/dimitri/el-get/master/el-get-install.el" 
-   (lambda (s) (goto-char (point-max)) (eval-print-last-sexp))))
-#+END_SRC
-We'll put the el-get packages we want in the =el-get-sources= list
-which we add to below. Also a helper function for adding items to the
-list.
-#+BEGIN_SRC emacs-lisp
-  (setq el-get-sources ())
-  (defun sf/add-pkg0 (pkg)
-    (add-to-list 'el-get-sources pkg))
-  (defmacro sf/add-pkg (pkg)
-    `(sf/add-pkg0 (quote ,pkg)))
-#+END_SRC
 ** Configure MELPA
 #+BEGIN_SRC emacs-lisp
-(require 'package)
-(add-to-list 'package-archives
-  '("melpa" . "http://melpa.milkbox.net/packages/") t)
+  (require 'package)
+  (add-to-list 'package-archives
+               '("melpa" . "http://melpa.milkbox.net/packages/"))
+
+  (add-to-list 'package-archives
+               '("org" . "http://orgmode.org/elpa/"))
+
+  (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
+
+  (require 'use-package)
+
+  (setq my-onlinep nil)
+  (unless
+      (condition-case nil
+          (delete-process
+           (make-network-process
+            :name "my-check-internet"
+            :host "melpa.milkbox.net"
+            :service 80))
+        (error t))
+    (setq my-onlinep t))
+
+  (when my-onlinep
+    (package-refresh-contents)
+    (package-initialize))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (setq my-pkg-list ())
+  (defun sf/add-pkg0 (pkg)
+    (add-to-list 'my-pkg-list pkg))
+    (defmacro sf/add-pkg (pkg)
+      `(sf/add-pkg0 (quote ,pkg)))
 #+END_SRC
 ** List desired add-on packages and their configuration
 Each package can have configurtiation defined in an =after-PKG=
 function to set variables and hooks.
 *** solarized theme
 #+BEGIN_SRC emacs-lisp
-(sf/add-pkg
- (:name sellout-solarized-theme
-        :type git
-        :url "https://github.com/sellout/emacs-color-theme-solarized.git"
-        :post-init (progn (add-to-list 'custom-theme-load-path
-                                       default-directory)
-                          (load-theme 'solarized-dark t))))
+    (use-package color-theme-sanityinc-solarized
+      :ensure
+      :config
+      (load-theme 'sanityinc-solarized-dark))
+
 #+END_SRC
 *** Eric Merritt's [[https://github.com/ericbmerritt/projmake-mode][projmake]]
 #+BEGIN_SRC emacs-lisp
-(sf/add-pkg
- (:name projmake-mode
-        :type git
-        :url "git://github.com/ericbmerritt/projmake-mode.git"
-        :after (progn (after-projmake))))
+  (use-package projmake-mode
+    :ensure
+    :init
+    (setq projmake-project-descs
+          '(("Rebar" "rebar.config" "nice -n5 rebar skip_deps=true compile")))
+    )
 
-(defun after-projmake ()
-  (setq projmake-project-descs '(("Rebar" "rebar.config" "nice -n5 rebar skip_deps=true compile")
-                                )))
+  (defun after-projmake ()
+    (setq projmake-project-descs '(("Rebar" "rebar.config" "nice -n5 rebar skip_deps=true compile")
+                                  )))
 
-(defun projmake-enable ()
-  (projmake-mode)
-  (projmake-search-load-project))
+  (defun projmake-enable ()
+    (projmake-mode)
+    (projmake-search-load-project))
 
 #+END_SRC
 
-*** ess
-    #+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name ess :after (progn (after-ess))))
-
-(defun after-ess ()
-    (setq ess-S-assign-key (kbd "C-="))
-    (ess-toggle-S-assign-key t)             ; enable above key definition
-    ;; leave my underscore key alone!
-    (ess-toggle-underscore t)
-    (ess-toggle-underscore nil)
-    (setq ess-r-versions '("R-"))
-    (setq ess-use-inferior-program-name-in-buffer-name t)
-    (add-to-list 'auto-mode-alist '("\\.Rd\\'" . Rd-mode))
-    (setq ess-eval-visibly-p nil)
-    (setq inferior-R-args "--no-save --no-restore -q")
-
-    ;; ESS
-    (add-hook 'ess-mode-hook
-              (lambda ()
-                (ess-set-style 'C++ 'quiet)
-                ;; Because
-                ;;                                 DEF GNU BSD K&R C++
-                ;; ess-indent-level                  2   2   8   5   4
-                ;; ess-continued-statement-offset    2   2   8   5   4
-                ;; ess-brace-offset                  0   0  -8  -5  -4
-                ;; ess-arg-function-offset           2   4   0   0   0
-                ;; ess-expression-offset             4   2   8   5   4
-                ;; ess-else-offset                   0   0   0   0   0
-                ;; ess-close-brace-offset            0   0   0   0   0
-                (add-hook 'local-write-file-hooks
-                          (lambda ()
-                            (ess-nuke-trailing-whitespace)))
-                (setq fill-column 72)))
-    (setq ess-nuke-trailing-whitespace-p 'ask))
-    #+END_SRC
-*** confluence
-This is only useful for conflu <4 since after that you can only edit
-using rich text in-browser BS. But for the versions that it works
-for, it makes editing a conflu wiki almost tolerable.
-#+BEGIN_SRC emacs-lisp
-(sf/add-pkg
- (:name confluence-el
-        :after (progn (after-confluence))))
-
-(defun after-confluence ()
-  (setq confluence-url "https://wiki.corp.opscode.com/rpc/xmlrpc"
-        confluence-default-space-alist (list (cons confluence-url "CORP")))
-  (global-set-key "\C-xwf" 'confluence-get-page)
-  ;; confluence editing support (with longlines mode)
-  (autoload 'confluence-get-page "confluence" nil t)
-  (eval-after-load "confluence"
-    '(progn
-       (require 'longlines)
-       (progn
-         (add-hook 'confluence-mode-hook 'longlines-mode)
-         (add-hook 'confluence-before-save-hook 'longlines-before-revert-hook)
-         (add-hook 'confluence-before-revert-hook 'longlines-before-revert-hook)
-         (add-hook 'confluence-mode-hook
-                   '(lambda ()
-                      (local-set-key "\C-j"
-                                     'confluence-newline-and-indent))))))
-  ;; LongLines mode: http://www.emacswiki.org/emacs-en/LongLines
-  (autoload 'longlines-mode "longlines" "LongLines Mode." t)
-
-  (eval-after-load "longlines"
-    '(progn
-       (defvar longlines-mode-was-active nil)
-       (make-variable-buffer-local 'longlines-mode-was-active)
-
-       (defun longlines-suspend ()
-         (if longlines-mode
-             (progn
-               (setq longlines-mode-was-active t)
-               (longlines-mode 0))))
-
-       (defun longlines-restore ()
-         (if longlines-mode-was-active
-             (progn
-               (setq longlines-mode-was-active nil)
-               (longlines-mode 1))))
-
-       ;; longlines doesn't play well with ediff, so suspend it during diffs
-       (defadvice ediff-make-temp-file (before make-temp-file-suspend-ll
-                                               activate compile preactivate)
-         "Suspend longlines when running ediff."
-         (with-current-buffer (ad-get-arg 0)
-           (longlines-suspend)))
-
-
-       (add-hook 'ediff-cleanup-hook
-                 '(lambda ()
-                    (dolist (tmp-buf (list ediff-buffer-A
-                                           ediff-buffer-B
-                                           ediff-buffer-C))
-                      (if (buffer-live-p tmp-buf)
-                          (with-current-buffer tmp-buf
-                            (longlines-restore)))))))))
-    #+END_SRC
 *** erlang
     #+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name erlang
-                   :type github
-                   :pkgname "erlang/otp"
-                   :load-path ("lib/tools/emacs")
-                   :shallow t
-                   :after (progn (after-erlang))))
+(use-package erlang
+ :ensure)
 
 ;; erlang
 
@@ -1134,41 +1017,65 @@ for, it makes editing a conflu wiki almost tolerable.
 (defun after-lfe ()
   (require 'lfe-start))
     #+END_SRC
+*** ess
+#+BEGIN_SRC emacs-lisp
+  (use-package ess
+    :ensure
+    :mode ("\\.Rd" . Rd-mode)
+    :config
+    (setq ess-S-assign-key (kbd "C-=")
+          ess-r-versions '("R-")
+          ess-use-inferior-program-name-in-buffer-name t
+          ess-eval-visibly-p nil
+          inferior-R-args "--no-save --no-restore -q"
+          ess-nuke-trailing-whitespace-p 'ask)
+    ;; leave my underscore key alone!
+    ;; (ess-toggle-underscore t)
+    ;; (ess-toggle-underscore nil)
+    (add-hook 'ess-mode-hook
+              (lambda ()
+                (ess-set-style 'C++ 'quiet)
+                (add-hook 'local-write-file-hooks
+                          (lambda ()
+                            (ess-nuke-trailing-whitespace)))
+                (setq fill-column 72)))
+    )
+
+    #+END_SRC
 *** ocaml via tuareg-mode
 #+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name tuareg-mode))
-
+(use-package tuareg
+ :ensure)
 #+END_SRC
 *** haskell
 #+BEGIN_SRC emacs-lisp
-(custom-set-variables
-     '(haskell-mode-hook '(turn-on-haskell-indentation)))
+(use-package haskell-mode
+ :ensure
+ :init
+ (custom-set-variables
+     '(haskell-mode-hook '(turn-on-haskell-indentation))))
 #+END_SRC
 *** magit and magithub
-With update to emacs nightly, magit seems to have broken :(
-#+BEGIN_SRC emacs-lisp :tangle no
-(sf/add-pkg (:name magit :after (progn (after-magit))))
-(sf/add-pkg (:name magithub))
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :ensure
+    :bind ("C-x g" . magit-status))
 
-(defun after-magit ()
-  (add-hook 'magit-mode-hook 'turn-on-magit-topgit)
-  (global-set-key (kbd "C-x g") 'magit-status))
 #+END_SRC
 *** chrome browser integration for editing text areas in Emacs
-#+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name emacs_chrome
-                   :type git
-                   :url "https://github.com/stsquad/emacs_chrome"
-                   :load-path ("servers")
-                   :features edit-server
-                   :after (progn (edit-server-start))))
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package edit-server
+    :ensure)
+  ;; edit-server-start
+
 #+END_SRC
-*** smex
+*** smex :tangle no
 #+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name smex :after (progn (after-smex))))
-(defun after-smex ()
-  (global-set-key (kbd "M-x") 'smex)
-  (global-set-key (kbd "M-X") 'execute-extended-command))
+  (use-package smex
+    :ensure
+    :bind (("M-x" . smex)
+           ("M-X" . execute-extended-command)))
+
 #+END_SRC
 *** auto-complete
     This [[http://cx4a.org/software/auto-complete/manual.html][auto-complete]] mode looks worth a try at some point
@@ -1176,47 +1083,33 @@ With update to emacs nightly, magit seems to have broken :(
 This mode, enabled using =M-x fci-mode= puts a vertical line
 indicating the fill column. Can be useful to keep you honest about
 long lines of code.
-#+BEGIN_SRC emacs-lisp
-(setq fci-rule-column 80)
-(sf/add-pkg (:name fill-column-indicator))
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package fill-column-indicator
+  :ensure
+  :init
+  (setq fci-rule-column 80))
 #+END_SRC
 *** Various edit modes that I don't yet customize
-#+BEGIN_SRC emacs-lisp
-(sf/add-pkg (:name ruby-mode))
-(sf/add-pkg (:name pg))
-(sf/add-pkg (:name nginx-mode))
-(sf/add-pkg (:name lua-mode))
-(sf/add-pkg (:name full-ack))
-(sf/add-pkg (:name haml-mode))
-(sf/add-pkg (:name markdown-mode))
-(sf/add-pkg (:name paredit))
-(sf/add-pkg (:name sass-mode))
-(sf/add-pkg (:name scss-mode))
-(sf/add-pkg (:name yaml-mode))
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ruby-mode
+ :ensure)
+(use-package pg)
+(use-package nginx-mode :ensure)
+(use-package lua-mode :ensure)
+(use-package ag :ensure)
+(use-package haml-mode :ensure)
+(use-package markdown-mode :ensure)
+(use-package paredit :ensure)
+(use-package sass-mode :ensure)
+(use-package scss-mode :ensure)
+(use-package yaml-mode :ensure)
 #+END_SRC
-*** org-mode
-#+BEGIN_SRC emacs-lisp
-  ;; Installing org-mode via el-get "works" initially, but upon restart
-  ;; of emacs, end up with an error about missing function
-  ;; `org-defvaralias` which makes no sense and appears to be defined in
-  ;; org-compat.el. For now, install org-mode as a checkout in vendor/
-  ;; and wire it in.
-  ;;
-  ;;(sf/add-pkg (:name org-mode
-  ;;                   :after (progn (after-org-mode))))
-  
-  (defun make-me-an-org-mode ()
-    (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/lisp")
-    (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/contrib/lisp" t)
-    (require 'org-velocity)
-    (global-set-key (kbd "C-c 0") 'org-velocity-read)
-    (define-key global-map "\C-c1" 'org-capture)
-    (define-key global-map "\C-cl" 'org-store-link)
-    (define-key global-map "\C-ca" 'org-agenda)
-    (global-set-key "\C-cb" 'org-iswitchb)
-    
-    (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-    
+*** org-mode 
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package org
+    :ensure
+    :mode ("\\.org$" . org-mode)
+    :init
     (setq
      org-directory "~/Notebook/org"
      org-mobile-inbox-for-pull "~/Notebook/org/from-mobile.org"
@@ -1248,66 +1141,21 @@ long lines of code.
             ("seth-ref.org" . (:level . 1))))
     
     (setq org-refile-use-outline-path 'file)
-    
-    ;; ;; http://orgmode.org/worg/org-faq.php#YASnippet
-    ;; (defun yas/org-very-safe-expand ()
-    ;;   (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
-    
-    ;; (add-hook 'org-mode-hook
-    ;;           (lambda ()
-    ;;             ;; yasnippet (using the new org-cycle hooks)
-    ;;             (make-variable-buffer-local 'yas/trigger-key)
-    ;;             (setq yas/trigger-key [tab])
-    ;;             (add-to-list 'org-tab-first-hook 'yas/org-very-safe-expand)
-    ;;             (define-key yas/keymap [tab] 'yas/next-field)))
-    
-    ;; this seems to work as well and is more general. It was slow on
-    ;; first load, then pretty snappy. Worked for mail and chrome
-    ;; (when (eq system-type 'darwin)
-    ;;   (require 'org-mac-link-grabber)
-    ;;   (add-hook 'org-mode-hook
-    ;;             (lambda ()
-    ;;               (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link))))
-    
-    ;; org-babel setup
-    ;; (require 'org-babel-init)
-    ;; (require 'org-babel-R)
-    ;; (require 'org-babel-ruby)
-    ;; (org-babel-load-library-of-babel)
     )
-  
-    (make-me-an-org-mode)
+  ;; note: installed via org package repo manually, since use-package
+  ;; sees the one that comes w/ emacs and does nothing.
+
+  ;; TODO FIXME: org-velocity
+    (defun make-me-an-org-mode ()
+      (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/lisp")
+      (add-to-list 'load-path "~/.emacs.d/vendor/org-mode/contrib/lisp" t)
+      (require 'org-velocity)
+      (global-set-key (kbd "C-c 0") 'org-velocity-read)
+      (define-key global-map "\C-c1" 'org-capture)
+      (define-key global-map "\C-cl" 'org-store-link)
+      (define-key global-map "\C-ca" 'org-agenda)
+      (global-set-key "\C-cb" 'org-iswitchb))
 #+END_SRC
-
-*** package (last)
-#+BEGIN_SRC emacs-lisp
-;; (sf/add-pkg (:name package
-;;                    :after (progn
-;;                             (add-to-list
-;;                              'package-archives
-;;                              '("org" . "http://orgmode.org/elpa/") t))))
-#+END_SRC
-** Tell el-get to install All The Things
-   So might be worth cleaning this up by defining el-get-sources
-   incrementally using =add-to-list= so that each item can be in its own
-   section for nice folding and isolation.
-   #+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-
-(unless (require 'el-get nil t)
-  (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-    (let (el-get-master-branch)
-      (end-of-buffer)
-      (eval-print-last-sexp))))
-(setq
- el-get-git-shallow-clone t
- el-get-github-default-url-type 'git
- my-packages (mapcar 'el-get-source-name el-get-sources))
-(el-get 'sync my-packages)
-
-   #+END_SRC
 * Random misc add ons and such
 ** wrangler
 #+BEGIN_SRC emacs-lisp
@@ -1332,15 +1180,6 @@ long lines of code.
 
 (global-set-key [f12] 'actilog)
 #+END_SRC
-* Stuff I hope I never have to use
-  :PROPERTIES:
-  :ta:       no
-  :END:
-** cucumber mode
-#+BEGIN_SRC emacs-lisp :tangle no
-(require 'feature-mode)
-(add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
-#+END_SRC
 * Junk Drawer
 #+BEGIN_SRC emacs-lisp :tangle no
 (require 'rspec-mode)
@@ -1358,22 +1197,8 @@ long lines of code.
         (replace-regexp-in-string
          "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
 #+END_SRC
-* Peepopen
-This is a great little utility if you are adicted to TextMate style
-file opening. It works pretty well, but I can't seem to make a habit
-of using it over the ido stuff.
-#+BEGIN_SRC emacs-lisp :tangle no
-;; textmate and peep open
-;(require 'textmate)
-;(require 'peepopen)
-;(setq ns-pop-up-frames nil)
-;(textmate-mode)
-;; (textmate-mode)
-;; (textmate-mode)
-#+END_SRC
-
 * mu4e
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 ;;----------------------------------------------------------
 ;; ---- BEGIN Email client ----
 ;;----------------------------------------------------------
@@ -1523,20 +1348,4 @@ FIXME: organize this stuff
 
   #+END_SRC
 * Problems
-** auctex
-   #+begin_example
-   Warning (initialization): An error occurred while loading `/Users/seth/.emacs.d/init.el':
 
-   error: el-get: ./configure el-get could not build auctex [./configure --with-lispdir=`pwd` --with-emacs=/Applications/Emacs.app/Contents/MacOS/Emacs]
-   checking for latex... /usr/texbin/latex
-   checking for pdflatex... /usr/texbin/pdflatex
-   checking for tex... /usr/texbin/tex
-   checking for prefix from kpsepath... "/usr/texbin"
-   checking for TDS-compliant directory... no
-   checking for TeX directory hierarchy... no
-   checking for TeX input directory... no
-   configure: error: Cannot find the texmf directory!
-   Please use --with-texmf-dir=dir to specify where the preview tex files go
-   configure: error: ./configure failed for preview
-
-   #+end_example
