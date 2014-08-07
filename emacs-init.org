@@ -7,7 +7,6 @@
 # no section numbers
 # don't use TeX syntax for sub and superscripts.
 # See http://orgmode.org/manual/Export-options.html
-# Time-stamp: <2014-06-07 10:40 PDT>
 
 * Emacs Configuration in Org-Mode
   Why? Because I needed to earn another nerd merit badge; Because I
@@ -839,6 +838,8 @@ with a trailing =~= turd.
       kept-new-versions 24
       kept-old-versions 12
       version-control t)
+
+(setq create-lockfiles nil)
 #+END_SRC
 
 ** Buffer naming, place saving, recent files, and minibuffer details
