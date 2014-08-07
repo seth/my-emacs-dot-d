@@ -547,22 +547,6 @@ this.
 (server-start)
 #+END_SRC
 
-** Copy Paste for Console
-: brew install reattach-to-user-namespace --wrap-pbcopy-and-pbpaste
-And then added to ~/.tmux.conf...
-: set-option -g default-command "reattach-to-user-namespace -l bash"
-#+BEGIN_SRC emacs-lisp
-(setq interprogram-cut-function
-      (lambda (text &optional push)
-        (let* ((process-connection-type nil)
-               (pbproxy (start-process "pbcopy" "pbcopy" "/usr/bin/pbcopy")))
-          (process-send-string pbproxy text)
-          (process-send-eof pbproxy))))
- 
-(setq interprogram-paste-function
-      (lambda ()
-        (shell-command-to-string "pbpaste")))
-#+END_SRC
 * PROGRAMMING
 ** imenu symbol lookup
 This bit of magic binds =M-i= to a function that knows how to identify
