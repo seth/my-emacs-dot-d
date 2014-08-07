@@ -1061,8 +1061,27 @@ to your mode hook:
     #+END_SRC
 *** ocaml via tuareg-mode
 #+BEGIN_SRC emacs-lisp
+(use-package utop
+  :ensure)
+
+(use-package merlin
+  :ensure)
+
 (use-package tuareg
- :ensure)
+  :ensure
+  :config
+  (add-hook 'tuareg-mode-hook 'tuareg-imenu-set-imenu)
+  (setq auto-mode-alist
+        (append '(("\\.ml[ily]?$" . tuareg-mode)
+                  ("\\.topml$" . tuareg-mode))
+                auto-mode-alist))
+  (autoload 'utop-setup-ocaml-buffer "utop" "Toplevel for OCaml" t)
+  (add-hook 'tuareg-mode-hook 'utop-setup-ocaml-buffer)
+  (add-hook 'tuareg-mode-hook 'merlin-mode)
+  (setq merlin-use-auto-complete-mode t)
+  (setq merlin-error-after-save nil)
+  )
+
 #+END_SRC
 *** haskell
 #+BEGIN_SRC emacs-lisp
