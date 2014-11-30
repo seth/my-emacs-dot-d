@@ -1126,54 +1126,67 @@ Since use-package detects the version of org that comes with Emacs, I
 ended up running an install from MELPA manually. I've also cloned the
 org git repo into the vendor dir to have access to the contribs.
 #+BEGIN_SRC emacs-lisp
-  (use-package org
-    :ensure
-    :mode ("\\.org$" . org-mode)
-    :load-path "~/.emacs.d/vendor/org-mode/contrib/lisp"
-    :bind (("C-c 1" . org-capture)
-           ("C-c l" . org-store-link)
-           ("C-c a" . org-agenda)
-           ("C-c b" . org-iswitchb))
-    :init
-    (setq
-     org-directory "~/Notebook/org"
-     org-mobile-inbox-for-pull "~/Notebook/org/from-mobile.org"
-     org-mobile-directory "~/Dropbox/MobileOrg"
-     org-agenda-files (quote ("~/Notebook/org/seth.org"))
-     org-enforce-todo-dependencies t
-     org-velocity-bucket "~/Notebook/org/solutions.org"
-     org-default-notes-file (concat org-directory "/notes.org")
-     org-log-done t
-     ;; this prevents org-mode from adding leading whitespace to code
-     ;; blocks after editing
-     org-src-preserve-indentation t)
-    
-    ;; capture setup
-    (setq org-capture-templates
-          '(("t" "Todo" entry
-             (file+headline (concat org-directory "/seth.org") "Next Action")
-             "* TODO %?\n  %i\n  %a")
-            ("s" "Solution" entry
-             (file+headline (concat org-directory "/solutions.org"))
-             "* %?\nEntered on %U\n  %i\n  %a")
-            ("j" "Journal" entry
-             (file+datetree (concat org-directory "/journal.org"))
-             "* %?\nEntered on %U\n  %i\n  %a")))
-    
-    ;; where to refile
-    (setq org-refile-targets
-          '((nil . (:level . 1))
-            ("solutions.org" . (:level . 1))
-            ("seth.org" . (:level . 1))
-            ("seth-sometime.org" . (:level . 1))
-            ("seth-ref.org" . (:level . 1))))
-    
-    (setq org-refile-use-outline-path 'file)
-    )
+(use-package org
+  :ensure
+  :mode ("\\.org$" . org-mode)
+  :load-path "~/.emacs.d/vendor/org-mode/contrib/lisp"
+  :bind (("C-c l" . org-store-link)
+         ("C-c a" . org-agenda)
+         ("C-c b" . org-iswitchb))
+  :init
+  (setq
+   org-directory "~/Notebook/org"
+   org-mobile-inbox-for-pull "~/Notebook/org/from-mobile.org"
+   org-mobile-directory "~/Dropbox/MobileOrg"
+   org-agenda-files (quote ("~/Notebook/org/seth.org"))
+   org-enforce-todo-dependencies t
+   org-velocity-bucket "~/Notebook/org/solutions.org"
+   org-default-notes-file (concat org-directory "/notes.org")
+   org-log-done t
+   ;; this prevents org-mode from adding leading whitespace to code
+   ;; blocks after editing
+   org-src-preserve-indentation t)
+  
+  ;; where to refile
+  (setq org-refile-targets
+        '((nil . (:level . 1))
+          ("solutions.org" . (:level . 1))
+          ("seth.org" . (:level . 1))
+          ("seth-sometime.org" . (:level . 1))
+          ("seth-ref.org" . (:level . 1))))
+  
+  (setq org-refile-use-outline-path 'file)
+  )
 
-  (use-package org-velocity
-    :bind (("C-c 0" . org-velocity-read))
-    )
+(use-package org-velocity
+  :bind (("C-c 0" . org-velocity-read))
+  )
+
+(defun my/org-capture ()
+  (interactive)
+  (org-capture nil "j"))
+
+(use-package org-capture
+  :bind (("C-c 1" . my/org-capture))
+  :init
+  (setq
+   ;; capture setup
+   org-capture-templates
+   '(("t" "Todo" entry
+      (file+headline (concat org-directory "/seth.org") "Next Action")
+      "* TODO %?\n  %i\n  %a")
+     ("s" "Solution" entry
+      (file+headline (concat org-directory "/solutions.org"))
+      "* %?\nEntered on %U\n  %i\n  %a")
+     ("j" "Journal" entry
+      (file+datetree (concat org-directory "/journal.org"))
+      "* [%<%H:%M>] %?\n%i\n")
+     ("f" "Journal with file link" entry
+      (file+datetree (concat org-directory "/journal.org"))
+      "* [%<%H:%M>] %?\n%i\n%a\n")
+     )
+   )
+  )
 
 #+END_SRC
 * Random misc add ons and such
