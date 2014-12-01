@@ -1075,6 +1075,10 @@ to your mode hook:
  (custom-set-variables
      '(haskell-mode-hook '(turn-on-haskell-indentation))))
 #+END_SRC
+*** rust
+#+BEGIN_SRC emacs-lisp
+(use-package rust-mode :ensure)
+#+END_SRC
 *** magit and magithub
 #+BEGIN_SRC emacs-lisp
   (use-package magit
