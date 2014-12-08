@@ -1235,7 +1235,7 @@ org git repo into the vendor dir to have access to the contribs.
          "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
 #+END_SRC
 * mu4e
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 ;;----------------------------------------------------------
 ;; ---- BEGIN Email client ----
 ;;----------------------------------------------------------
@@ -1244,7 +1244,7 @@ org git repo into the vendor dir to have access to the contribs.
 
 ;; something about ourselves
 (setq
- user-mail-address "seth@getchef.com"
+ user-mail-address "seth@chef.io"
  user-full-name  "Seth Falcon")
 
 ;; sending mail -- replace USERNAME with your gmail username
@@ -1257,9 +1257,9 @@ org git repo into the vendor dir to have access to the contribs.
     smtpmail-debug-info t
     smtpmail-debug-verb t
     smtpmail-stream-type 'ssl
-    starttls-extra-arguments '("--x509cafile" "/usr/local/etc/ssl/cacert.pem")
+    starttls-extra-arguments '("--x509cafile" "/usr/local/etc/openssl/cert.pem")
     smtpmail-default-smtp-server "smtp.gmail.com"
-    smtpmail-smtp-user "seth@opscode.com"
+    smtpmail-smtp-user "seth@chef.io"
     smtpmail-smtp-server "smtp.gmail.com"
     smtpmail-smtp-service 465)
 (require 'smtpmail)
