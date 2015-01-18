@@ -1005,8 +1005,16 @@ to your mode hook:
     (add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
    :ensure)
 
-  ;; do we need (require 'erlang-start) ?
   (defun my-erlang-mode-hook ()
+    (if (buffer-file-name)
+        ;; projmake breaks org-mode code block editing. need to
+        ;; investigate
+        (progn
+          (linum-mode))
+      (message "skipping ephemeral buffer"))
+    )
+
+  (defun my-erlang-mode-hook/with-projmake ()
     (if (buffer-file-name)
         ;; projmake breaks org-mode code block editing. need to
         ;; investigate
@@ -1042,7 +1050,7 @@ to your mode hook:
                 (setq fill-column 72)))
     )
 
-    #+END_SRC
+#+END_SRC
 *** ocaml via tuareg-mode
 #+BEGIN_SRC emacs-lisp
 (use-package utop
@@ -1113,14 +1121,14 @@ long lines of code.
   (setq fci-rule-column 80))
 #+END_SRC
 *** Various edit modes that I don't yet customize
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package ruby-mode :ensure)
 (use-package nginx-mode :ensure)
 (use-package lua-mode :ensure)
 (use-package ag :ensure)
 (use-package haml-mode :ensure)
 (use-package markdown-mode :ensure)
-(use-package paredit :ensure)
+;;(use-package paredit :ensure)
 (use-package sass-mode :ensure)
 (use-package scss-mode :ensure)
 (use-package yaml-mode :ensure)
@@ -1170,8 +1178,32 @@ org git repo into the vendor dir to have access to the contribs.
   (interactive)
   (org-capture nil "j"))
 
+(defun my/one-on-one (who)
+  (interactive "sWho: ")
+  (setq current-one-on-one
+        (concat org-directory "/1:1/" who ".org"))
+  (org-capture nil "x"))
+
+(defun my/current-month ()
+  (interactive)
+  (goto-char (point-min))
+  (message "hi")
+  (message (format "%s" (current-buffer)))
+  (unless (derived-mode-p 'org-mode)
+    (error
+     "Target buffer \"%s\" for my/current-month should be in Org mode"
+     (current-buffer)))
+  (let ((current-month (format-time-string "%B %Y" (current-time))))
+    (re-search-forward
+     (format org-complex-heading-regexp-format (regexp-quote current-month))
+     nil t)
+    (message (format "loc: %s" (point-at-bol)))
+    (goto-char (point-at-bol))))
+
+
 (use-package org-capture
-  :bind (("C-c 1" . my/org-capture))
+  :bind (("C-c 1" . my/org-capture)
+         ("C-c 2" . my/one-on-one))
   :init
   (setq
    ;; capture setup
@@ -1183,8 +1215,14 @@ org git repo into the vendor dir to have access to the contribs.
       (file+headline (concat org-directory "/solutions.org"))
       "* %?\nEntered on %U\n  %i\n  %a")
      ("j" "Journal" entry
-      (file+datetree (concat org-directory "/journal.org"))
-      "* [%<%H:%M>] %?\n%i\n")
+      (file (concat org-directory "/journal.org"))
+      "* [%<%d-%b-%Y %H:%M>] %?\n%i\n")
+     ("z" "Testing" entry
+      (file (concat org-directory "/test-cap.org"))
+      "* [%<%d-%b-%Y %H:%M>] %?\n%i\n")
+     ("x" "1:1 Note" entry
+      (file current-one-on-one)
+      "* [%<%d-%b-%Y %H:%M>] %?\n%i\n")
      ("f" "Journal with file link" entry
       (file+datetree (concat org-directory "/journal.org"))
       "* [%<%H:%M>] %?\n%i\n%a\n")
@@ -1285,9 +1323,9 @@ org git repo into the vendor dir to have access to the contribs.
      (mu4e-trash-folder  "/opscode/[Gmail].Trash")
      (mu4e-refile-folder  "/opscode/Zero")
 
-     (user-mail-address "seth@getchef.com")
+     (user-mail-address "seth@chefio.com")
      (mu4e-compose-signature
-      "Seth Falcon | Engineering Lead - Continuous Delivery | @sfalcon\n       CHEF | http://www.getchef.com/ ")
+      "Seth Falcon | Engineering Lead - Continuous Delivery | @sfalcon\n       CHEF | http://www.chef.io/ ")
      (smtpmail-smtp-server "opscode-gmail")
      (smtpmail-smtp-user "seth@opscode.com"))
     ("userprimary"
@@ -1337,7 +1375,7 @@ org git repo into the vendor dir to have access to the contribs.
              '("maildir:/Nagios date:today..now flag:unread AND NOT flag:trashed" "Nagios Today" ?n))
 
 (add-to-list 'mu4e-bookmarks
-             '("(to:seth@opscode.com OR to:seth@getchef.com) maildir:/INBOX flag:unread AND NOT flag:trashed" "Unread for me" ?m))
+             '("(to:seth@chef.io OR to:seth@opscode.com OR to:seth@getchef.com) maildir:/INBOX flag:unread AND NOT flag:trashed" "Unread for me" ?m))
 
 
 ;; allow for updating mail using 'U' in the main view:
