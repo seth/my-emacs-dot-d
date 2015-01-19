@@ -1222,7 +1222,7 @@ org git repo into the vendor dir to have access to the contribs.
       "* [%<%d-%b-%Y %H:%M>] %?\n%i\n")
      ("x" "1:1 Note" entry
       (file current-one-on-one)
-      "* [%<%d-%b-%Y %H:%M>] %?\n%i\n")
+      "* [%<%d-%b-%Y %H:%M>] %?\n%i\n" :prepend t)
      ("f" "Journal with file link" entry
       (file+datetree (concat org-directory "/journal.org"))
       "* [%<%H:%M>] %?\n%i\n%a\n")
