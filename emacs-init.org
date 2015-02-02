@@ -1085,7 +1085,14 @@ to your mode hook:
 #+END_SRC
 *** rust
 #+BEGIN_SRC emacs-lisp
-(use-package rust-mode :ensure)
+(use-package rust-mode
+  :config
+  (add-hook 'rust-mode-hook 'my-rust-mode-hook)
+  :ensure)
+
+(defun my-rust-mode-hook ()
+  (linum-mode))
+
 #+END_SRC
 *** magit and magithub
 #+BEGIN_SRC emacs-lisp
