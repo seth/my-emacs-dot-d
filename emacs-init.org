@@ -1189,11 +1189,13 @@ org git repo into the vendor dir to have access to the contribs.
   (interactive)
   (org-capture nil "j"))
 
-(defun my/one-on-one (who)
-  (interactive "sWho: ")
-  (setq current-one-on-one
-        (concat org-directory "/1:1/" who ".org"))
-  (org-capture nil "x"))
+(defun my/one-on-one ()
+    (interactive)
+    (with-temp-buffer
+      (setq default-directory "~/Notebook/org/1:1")
+      (call-interactively 'ido-find-file)
+      (setq current-one-on-one (buffer-file-name))
+      (org-capture nil "x")))
 
 (defun my/current-month ()
   (interactive)
