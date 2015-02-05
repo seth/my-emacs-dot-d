@@ -1094,6 +1094,10 @@ to your mode hook:
   (linum-mode))
 
 #+END_SRC
+*** toml
+#+BEGIN_SRC emacs-lisp
+(use-package toml-mode :ensure)
+#+END_SRC
 *** magit and magithub
 #+BEGIN_SRC emacs-lisp
   (use-package magit
@@ -1210,7 +1214,9 @@ org git repo into the vendor dir to have access to the contribs.
 
 (use-package org-capture
   :bind (("C-c 1" . my/org-capture)
-         ("C-c 2" . my/one-on-one))
+         ("C-c 2" . my/one-on-one)
+         ("C-c 3" . org-capture)
+         )
   :init
   (setq
    ;; capture setup
