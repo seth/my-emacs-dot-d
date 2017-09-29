@@ -931,8 +931,13 @@ startup.
 
 #+BEGIN_SRC emacs-lisp
   (require 'package)
-  (add-to-list 'package-archives
-               '("melpa" . "http://melpa.milkbox.net/packages/"))
+
+  (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                      (not (gnutls-available-p))))
+         (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
+    (add-to-list 'package-archives (cons "melpa" url) t))
+  ;; (add-to-list 'package-archives
+  ;;              '("melpa" . "http://melpa.milkbox.net/packages/"))
 
   (add-to-list 'package-archives
                '("org" . "http://orgmode.org/elpa/"))
@@ -955,7 +960,9 @@ startup.
 ** Setup use-package
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'load-path "~/.emacs.d/vendor/use-package")
-  (require 'use-package)
+  (eval-when-compile
+    (require 'use-package))
+  (require 'bind-key)
 #+END_SRC
 ** Packages and their configuration
 To force a package to get installed if it isn't already available, add
@@ -997,6 +1004,11 @@ to your mode hook:
   (defun projmake-enable ()
     )
 
+#+END_SRC
+*** elixir
+#+BEGIN_SRC emacs-lisp
+(use-package elixir-mode
+  :ensure)
 #+END_SRC
 *** erlang
 #+BEGIN_SRC emacs-lisp
@@ -1094,9 +1106,85 @@ to your mode hook:
   (linum-mode))
 
 #+END_SRC
+*** golang
+Following https://johnsogg.github.io/emacs-golang
+
+Install the following go tools.
+#+BEGIN_SRC sh
+go get -u golang.org/x/tools/cmd/...
+go get -u github.com/rogpeppe/godef/...
+go get -u github.com/nsf/gocode
+go get -u golang.org/x/tools/cmd/goimports
+go get -u golang.org/x/tools/cmd/guru
+go get -u github.com/dougm/goflymake
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package go-mode
+  :config
+  (add-hook 'go-mode-hook 'my-go-mode-hook)
+  :ensure)
+
+(use-package auto-complete :ensure)
+(use-package go-autocomplete :ensure)
+(use-package go-guru :ensure)
+(use-package exec-path-from-shell :ensure)
+(use-package flymake-go :ensure)
+
+(use-package neotree :ensure)
+
+
+(defun my-go-mode-hook ()
+  ;; Call Gofmt before saving
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  ;; (setq gofmt-command "goimports")
+  (go-guru-hl-identifier-mode)  
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+  (local-set-key (kbd "M-p") 'compile)         ; Invoke compiler
+  (local-set-key (kbd "M-P") 'recompile)       ; Redo most recent compile cmd
+  (local-set-key (kbd "M-]") 'next-error)      ; Go to next error (or msg)
+  (local-set-key (kbd "M-[") 'previous-error)  ; Go to previous error or msg
+  
+  (auto-complete-mode 1)
+  (linum-mode))
+
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "GOPATH"))
+
+#+END_SRC
+*** TypeScript
+#+BEGIN_SRC emacs-lisp
+(use-package typescript-mode
+  :config
+  (add-hook 'typescript-mode-hook 'my-typescript-mode-hook)
+  :ensure)
+
+(defun my-typescript-mode-hook ()
+  (linum-mode))
+#+END_SRC
+*** protobuf
+#+BEGIN_SRC emacs-lisp
+(use-package protobuf-mode
+  :config
+  (add-hook 'protobuf-mode-hook 'my-protobuf-mode-hook)
+  :ensure)
+
+(defun my-protobuf-mode-hook ()
+  (linum-mode))
+#+END_SRC
 *** toml
 #+BEGIN_SRC emacs-lisp
 (use-package toml-mode :ensure)
+#+END_SRC
+*** elm
+#+BEGIN_SRC emacs-lisp
+(use-package elm-mode :ensure)
+#+END_SRC
+*** cucumber
+#+BEGIN_SRC emacs-lisp
+(use-package feature-mode :ensure)
 #+END_SRC
 *** magit and magithub
 #+BEGIN_SRC emacs-lisp
@@ -1106,11 +1194,9 @@ to your mode hook:
 
 #+END_SRC
 *** chrome browser integration for editing text areas in Emacs
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package edit-server
     :ensure)
-  ;; edit-server-start
-
 #+END_SRC
 *** smex
 #+BEGIN_SRC emacs-lisp
@@ -1121,11 +1207,17 @@ to your mode hook:
 #+END_SRC
 *** auto-complete
     This [[http://cx4a.org/software/auto-complete/manual.html][auto-complete]] mode looks worth a try at some point
+*** plantUML
+#+BEGIN_SRC emacs-lisp
+(use-package plantuml-mode :ensure)
+(use-package flycheck-plantuml :ensure)
+
+#+END_SRC
 *** fill column inidicator (fci-mode)
 This mode, enabled using =M-x fci-mode= puts a vertical line
 indicating the fill column. Can be useful to keep you honest about
 long lines of code.
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package fill-column-indicator
   :ensure
   :init
@@ -1161,7 +1253,9 @@ org git repo into the vendor dir to have access to the contribs.
    org-directory "~/Notebook/org"
    org-mobile-inbox-for-pull "~/Notebook/org/from-mobile.org"
    org-mobile-directory "~/Dropbox/MobileOrg"
-   org-agenda-files (quote ("~/Notebook/org/seth.org"))
+   org-agenda-files (quote ("~/Notebook/org/journal.org"
+                            "~/Notebook/org/meetings"
+                            "~/Notebook/org/1:1"))
    org-enforce-todo-dependencies t
    org-velocity-bucket "~/Notebook/org/solutions.org"
    org-default-notes-file (concat org-directory "/notes.org")
@@ -1202,7 +1296,7 @@ org git repo into the vendor dir to have access to the contribs.
     (with-temp-buffer
       (setq default-directory "~/Notebook/org/meetings")
       (call-interactively 'ido-find-file)
-      (setq current-one-on-one (buffer-file-name))
+      (setq current-meeting (buffer-file-name))
       (org-capture nil "m")))
 
 (use-package org-capture
@@ -1233,6 +1327,9 @@ org git repo into the vendor dir to have access to the contribs.
      ("m" "Meeting Notes" entry
       (file current-meeting)
       "* [%<%d-%b-%Y %H:%M>] %?\n** Attendees\n** Notes%i\n" :prepend t :unnarrowed t)
+     ("d" "Demo/Customer Interview" entry
+      (file (concat org-directory "/meetings/delivery-demo-meetings.org"))
+      "* [%<%d-%b-%Y %H:%M>] %?\n** Attendees\n** Problems and challenges\n** Notes%i\n** Key Learning")
      ("f" "Journal with file link" entry
       (file+datetree (concat org-directory "/journal.org"))
       "* [%<%H:%M>] %?\n%i\n%a\n")
@@ -1240,6 +1337,16 @@ org git repo into the vendor dir to have access to the contribs.
    )
   )
 
+#+END_SRC
+*** Text manipulation
+This provides =M-x unfill-region=.
+#+BEGIN_SRC emacs-lisp
+(use-package unfill :ensure)
+#+END_SRC
+*** Confluence
+Provides =confluence-mode=
+#+BEGIN_SRC emacs-lisp
+(use-package confluence :ensure)
 #+END_SRC
 * Random misc add ons and such
 ** wrangler
@@ -1283,7 +1390,7 @@ org git repo into the vendor dir to have access to the contribs.
          "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
 #+END_SRC
 * mu4e
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 ;;----------------------------------------------------------
 ;; ---- BEGIN Email client ----
 ;;----------------------------------------------------------
